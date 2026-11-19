@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="fr">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Entrepôt virtuel GATL · Démonstration</title>
+<style>
+body { margin: 0; background: #eef3f6; color: #172d3b; font: 1rem/1.55 system-ui, sans-serif; }
+main { max-width: 38rem; margin: 8vh auto; padding: 2rem; background: white; border-radius: 1rem; }
+button { padding: .7rem 1rem; border: 0; border-radius: .5rem; background: #14526e; color: white; font: inherit; cursor: pointer; }
+</style>
+<main>
+<h1>Entrepôt virtuel GATL</h1>
+<p>Démo de réception de marchandises sur données fictives.</p>
+<button id="show" type="button" aria-expanded="false" aria-controls="delivery">Afficher la livraison</button>
+<section id="delivery" hidden>
+<h2>Livraison de démonstration</h2>
+<p>Le bon de livraison BL-001 annonce 12 cartons. À quai, tu en comptes 11.</p>
+<label for="note">Observation à inscrire sur le bon de livraison</label><br>
+<textarea id="note" rows="3"></textarea>
+</section>
+</main>
+<script>
+const button = document.querySelector('#show');
+const delivery = document.querySelector('#delivery');
+button.addEventListener('click', () => {
+  delivery.hidden = !delivery.hidden;
+  button.setAttribute('aria-expanded', String(!delivery.hidden));
+  button.textContent = delivery.hidden ? 'Afficher la livraison' : 'Masquer la livraison';
+});
+</script>
+</html>
