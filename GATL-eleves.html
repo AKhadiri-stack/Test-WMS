@@ -136,7 +136,7 @@ const status = document.querySelector('#status');
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let db;
 try { db = JSON.parse(localStorage.getItem(key)); } catch {}
-db = { drafts: db?.drafts || {} };
+db = { drafts: db?.drafts || {}, resume: db?.resume || {} };
 const today = new Date();
 let year = today.getFullYear() - (today.getMonth() < 8 ? 1 : 0);
 let mode = 'home', group = '2BACGTL1', name = '', lesson = '', step = 0, filter = '', tab = 'suivi', search = '', gradeStatus = '';
@@ -263,10 +263,10 @@ function exercise() {
      <div class="steps" role="group" aria-label="Questions">${item.questions.map((q,i) => `<button type="button" data-a="question" data-v="${i}" class="stp${answers[i]?.trim() ? ' done' : ''}${i === step ? ' on' : ''}" aria-label="Question ${i + 1}">${i + 1}</button>`).join('')}</div>
     <div class="guide"><details open class="scroll"><summary>Lire les documents et les repères</summary><div class="documents">${item.documents}${schema(lesson)}</div>${btn('paper','Ouvrir la fiche papier')}</details>
       <section class="card lead"><h2>${step ? 'Réponds à cette question' : 'Commence ici'}</h2>
-      <p>Lis les documents à côté. Écris ta réponse ci-dessous, puis clique sur « ${step + 1 === total ? 'Relire mon travail' : 'Question suivante'} ».</p>
+      <p>Lis les documents à côté. Écris ta réponse ci-dessous, puis clique sur « ${step + 1 === total ? 'Enregistrer et relire' : 'Enregistrer et continuer'} ».</p>
       <label class="question" for="answer">${item.questions[step]}</label><textarea id="answer" rows="7" maxlength="10000">${esc(answers[step])}</textarea>
       <div class="row">${step ? btn('question','Précédente',step - 1) : ''}
-      ${btn('next',step + 1 === total ? 'Relire mon travail' : 'Question suivante','',true)}</div>
+      ${btn('save-page','Enregistrer et quitter')}${btn('next',step + 1 === total ? 'Enregistrer et relire' : 'Enregistrer et continuer','',true)}</div>
       </section></div>`;
 }
 function render() {
@@ -300,11 +300,24 @@ app.addEventListener('click', async event => {
   if (a === 'open') {
     if (!ids().includes(v)) return;
     lesson = v;
-    step = lessons[lesson].questions.findIndex((_,i) => !draft()[i]?.trim());
+    const savedStep = db.resume[currentKey()];
+    step = Number.isInteger(savedStep) && savedStep >= 0 && savedStep <= lessons[lesson].questions.length
+      ? savedStep : lessons[lesson].questions.findIndex((_,i) => !draft()[i]?.trim());
     if (step < 0) step = lessons[lesson].questions.length;
     return go('exercise');
   }
-  if (a === 'question' || a === 'next') { step = a === 'next' ? step+1 : Number(v); return go('exercise'); }
+  if (a === 'save-page' || a === 'next') {
+    const key = currentKey();
+    db.resume[key] = a === 'next' ? step + 1 : step;
+    if (!save()) return;
+    if (a === 'save-page') {
+      go('catalog');
+      return report('Brouillon enregistré sur cet appareil.');
+    }
+    step = db.resume[key];
+    return go('exercise');
+  }
+  if (a === 'question') { step = Number(v); return go('exercise'); }
   if (a === 'submit') {
     if (!draft().some(value => value?.trim())) return report('Écris au moins une réponse avant de télécharger.');
     const item = lessons[lesson];
