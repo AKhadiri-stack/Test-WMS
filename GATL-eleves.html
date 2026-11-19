@@ -275,6 +275,16 @@ function render() {
 
 }
 function go(screen) { mode = screen; report(''); render(); window.scrollTo(0,0); }
+app.addEventListener('copy', event => {
+  if (mode === 'exercise' && event.target.id !== 'answer' && !event.target.closest('input, textarea')) event.preventDefault();
+});
+for (const type of ['paste', 'drop']) {
+  app.addEventListener(type, event => {
+    if (event.target.id !== 'answer') return;
+    event.preventDefault();
+    report('Saisis ta r\u00e9ponse directement dans le champ.');
+  });
+}
 app.addEventListener('input', event => {
   if (event.target.id !== 'answer') return;
   const values = draft().slice();
