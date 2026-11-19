@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Réception au quai 2 · TP GATL</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#eff4f3;color:#172b35;font:16px/1.55 system-ui,sans-serif}header{background:#102b3a;color:#fff;padding:32px max(20px,calc((100vw - 980px)/2));border-bottom:5px solid #46c9a8}h1{font-size:clamp(32px,6vw,56px);line-height:1.08;margin:.24em 0}h2,h3{line-height:1.25}header p{margin:0;color:#cce3e3}main{width:min(980px,calc(100% - 32px));margin:20px auto 48px}nav,.actions{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}button{font:inherit;font-weight:700;padding:9px 15px;border:1px solid #92aaa9;border-radius:9px;background:white;color:#142b38;cursor:pointer}button.primary,button[aria-pressed=true]{background:#075c52;color:white;border-color:#075c52}button:disabled{opacity:.55;cursor:wait}button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid #c87521;outline-offset:2px}.card,details{background:white;border:1px solid #d1e2df;border-radius:15px;padding:clamp(16px,3vw,25px);margin:14px 0}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,310px),1fr));gap:16px}.grid>.card{margin:0}label{display:block;font-weight:700;margin:10px 0 4px}input,select,textarea{font:inherit;color:inherit;border:1px solid #8ba6a5;border-radius:8px;padding:9px;width:100%}textarea{min-height:132px;resize:vertical}.hint{color:#46616a}.scroll{overflow:auto}table{border-collapse:collapse;width:100%;min-width:460px}th,td{border-bottom:1px solid #d1e2df;padding:10px;text-align:left;vertical-align:top;white-space:pre-wrap;overflow-wrap:anywhere}th{background:#eff5f5}.stage{background:#133544;color:#fff;border-radius:12px;overflow:hidden}.stage svg{width:100%;display:block}#truck{transition:transform 1.4s ease}@media(prefers-reduced-motion:reduce){#truck{transition:none}}.caption{padding:10px 15px;min-height:69px;margin:0;background:#102b3a}.meta{color:#9febd9;font-weight:700}.status{min-height:1.5em;font-weight:650}.steps{color:#076052;font-weight:700}summary{cursor:pointer;font-weight:700}video{width:100%;border-radius:12px}code{overflow-wrap:anywhere}
+</style></head>
+<body>
+<header><div class="meta">Lycée Château d’Épluches · Seconde GATL</div><h1>Réception au quai 2</h1><p>Contrôler une livraison et communiquer les anomalies.</p></header>
+<main>
+<nav aria-label="Espaces du TP"><button id="studentTab" aria-pressed="true">Élèves</button><button id="teacherTab" aria-pressed="false">Professeur</button></nav>
+<section id="student">
+<div class="grid">
+<article class="card"><h2>Message du conducteur</h2><p>Écoute le contexte avant d’ouvrir les documents.</p>
+<div class="actions"><button id="listen">Écouter</button><button id="stop">Arrêter</button></div><p id="audioStatus" class="status" role="status"></p>
+<details><summary>Lire la transcription</summary><p id="transcript"></p></details></article>
+<article class="card"><h2>La réception en images</h2>
+<div id="animation" class="stage"><svg viewBox="0 0 360 140" role="img" aria-label="Schéma animé du quai, du camion et des documents">
+<path d="M0 116H360" stroke="#73a8a8" stroke-width="3"/><path d="M270 30H350V116H270Z" fill="#83a8b0"/><path d="M282 45H332V116H282Z" fill="#244e5a"/><text x="307" y="25" fill="#fff" font-size="13" text-anchor="middle">QUAI 2</text>
+<g id="truck"><path d="M20 62H128V103H20ZM128 75H153L169 90V103H128Z" fill="#52d4b0"/><path d="M133 79H150L159 89H133Z" fill="#163544"/><circle cx="46" cy="105" r="9" fill="#091d26"/><circle cx="146" cy="105" r="9" fill="#091d26"/></g>
+<g id="symbol" fill="#f6c574"></g></svg><p id="caption" class="caption" aria-live="polite"></p></div>
+<div id="animationControls" class="actions"><button id="play">Lire l’animation</button><button id="pause">Pause</button><button id="nextScene">Image suivante</button></div></article>
+</div>
+<div class="grid"><details><summary>Document 1 · Bon de livraison BL-001</summary>
+<p><strong>BL-001</strong> · Expéditeur Alpina Équipement · Destinataire Lycée Château d’Épluches · Quai 2</p>
+<div class="scroll"><table><thead><tr><th>Référence</th><th>Marchandise</th><th>Quantité annoncée</th></tr></thead><tbody><tr><td>A105</td><td>Lampes d’atelier</td><td>12 cartons</td></tr><tr><td>B240</td><td>Gants de manutention</td><td>6 cartons</td></tr></tbody></table></div></details><details><summary>Document 2 · Relevé du quai</summary><p>Relevé à 9 h 10 par l’agent de réception.</p><div class="scroll"><table><thead><tr><th>Référence</th><th>Quantité comptée</th><th>État apparent</th></tr></thead><tbody><tr><td>B240</td><td>6 cartons</td><td>Emballages intacts</td></tr><tr><td>A105</td><td>11 cartons</td><td>1 carton écrasé parmi les 11</td></tr></tbody></table></div></details></div>
+<form id="exercise" class="card">
+<p class="steps" id="stepLabel"></p><h2 id="stepTitle" tabindex="-1"></h2>
+<div id="identity" class="grid"><div><label for="studentCode">Identifiant donné par le professeur</label><input id="studentCode" maxlength="24" pattern="[A-Za-z0-9\-]{2,24}" placeholder="Ex. G1-07" autocomplete="off" required></div>
+<div><label for="group">Groupe</label><select id="group" required><option value="">Choisir</option><option>G1</option><option>G2</option></select></div></div>
+<label for="answer" id="question"></label><textarea id="answer" maxlength="1200" required></textarea>
+<label for="classCode" id="classLabel" hidden>Code de séance pour remettre la copie</label><input id="classCode" type="password" autocomplete="off" maxlength="18" hidden>
+<div class="actions"><button id="back" type="button">Étape précédente</button><button id="save" class="primary">Enregistrer et continuer</button><button id="download" type="button">Télécharger ma copie</button></div>
+<p id="studentStatus" class="status" role="status"></p><p class="hint">Le brouillon est enregistré sur ce Chromebook à la fin de chaque étape. La copie est transmise lors de la remise finale.</p></form>
+</section>
+<section id="teacher" hidden>
+<div class="card"><h2>Copies remises</h2><details><summary>Compétences travaillées</summary><p>C1.4.1 · Contrôle quantitatif et qualitatif, identification des manquants et avaries, émission de réserves.</p><p>C1.4.2 · Identification du litige, collecte d’éléments de preuve et transmission au responsable.</p><p><a href="https://www.legifrance.gouv.fr/loda/article_lc/LEGIARTI000051142988/2026-04-24">Référentiel du bac pro Métiers de la logistique</a></p></details><p class="hint">Les réponses sont à corriger. Trie les copies par groupe ou exporte-les en CSV pour les ouvrir dans Excel.</p>
+<form id="teacherForm"><label for="teacherCode">Code professeur</label><input id="teacherCode" type="password" autocomplete="off" maxlength="36" required>
+<div class="actions"><button class="primary">Actualiser les copies</button><button type="button" id="csv" disabled>Exporter le CSV</button><button type="button" id="logout">Fermer l’accès</button></div></form>
+<label for="filter">Groupe affiché</label><select id="filter"><option value="">Tous les groupes</option><option>G1</option><option>G2</option></select>
+<p id="teacherStatus" class="status" role="status"></p>
+<div class="scroll"><table id="results" hidden><thead><tr><th>Identifiant</th><th>Groupe</th><th>Contrôle</th><th>Réserves</th><th>Décision</th><th>Remise</th></tr></thead><tbody></tbody></table></div></div>
+</section>
+</main>
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+const message="Bonjour, ici le conducteur. Je viens de me présenter au quai numéro deux avec la livraison Alpina Équipement. Le bon de livraison est prêt. Avant que je reparte, vérifie les références, les quantités et l’état des emballages. Si tu observes un écart, indique précisément ce que tu as constaté.";
+$("transcript").textContent=message;
+$("listen").onclick=()=>{
+  if(!("speechSynthesis" in window)){ $("audioStatus").textContent="Lecture vocale indisponible. Ouvre la transcription."; return; }
+  speechSynthesis.cancel();
+  const voice=speechSynthesis.getVoices().find(item=>item.lang.toLowerCase().startsWith("fr"));
+  const audio=new SpeechSynthesisUtterance(message);
+  audio.lang="fr-FR"; audio.rate=.94;
+  if(voice) audio.voice=voice;
+  audio.onstart=()=>$("audioStatus").textContent="Lecture en cours…";
+  audio.onend=()=>$("audioStatus").textContent="";
+  audio.onerror=event=>{if(!["interrupted","canceled"].includes(event.error)) $("audioStatus").textContent="Lecture vocale indisponible. Ouvre la transcription.";};
+  speechSynthesis.speak(audio);
+};
+$("stop").onclick=()=>{window.speechSynthesis?.cancel(); $("audioStatus").textContent="";};
+const scenes=[
+ ["Le conducteur se présente au quai. Identifie la livraison et récupère son bon de livraison.",""],
+ ["Bon de livraison en main, compare les références et compte les colis réellement présents.","<rect x='252' y='54' width='39' height='51' rx='4'/><path d='M260 68h22m-22 9h22m-22 9h22' fill='none' stroke='#173644' stroke-width='3'/>"],
+ ["Inspecte l’état apparent des emballages. Une anomalie doit être décrite avec précision.","<path d='M246 71h54v35h-54z'/><path d='m247 71 26-12 27 12m-27-11v46' fill='none' stroke='#f6c574' stroke-width='3'/><path d='M274 72v31' stroke='#173644' stroke-width='3'/>"],
+ ["NOTE DE RÉCEPTION · Indique les faits constatés, puis propose les actions à mener.","<rect x='252' y='52' width='40' height='52' rx='4'/><path d='m260 80 7 7 15-16' stroke='#173644' stroke-width='4' fill='none'/>"]
+];
+let scene=0, timer;
+function showScene(){
+  $("caption").textContent=scenes[scene][0]; $("symbol").innerHTML=scenes[scene][1];
+  $("truck").setAttribute("transform","translate("+(scene===0?54:84)+",0)");
+}
+function pause(){clearInterval(timer);}
+$("play").onclick=()=>{pause();scene=0;showScene();timer=setInterval(()=>{if(scene===scenes.length-1){pause();return;}scene++;showScene();},6000);};
+$("pause").onclick=pause;
+$("nextScene").onclick=()=>{pause();scene=(scene+1)%scenes.length;showScene();};
+showScene();
+const steps=[
+ ["Contrôler la livraison","Pour A105 et B240, compare les quantités annoncées et reçues. Indique aussi l’état des emballages pour chaque référence."],
+ ["Rédiger les réserves","Rédige les réserves à inscrire sur le BL-001. Cite la référence, les écarts de quantité et l’anomalie d’état observée."],
+ ["Décider et justifier","Le conducteur attend. Que fais-tu du carton écrasé et qui préviens-tu ? Justifie ta décision et indique comment tu gardes une trace."]
+];
+const storageKey="gatl-tp-quai2-2026-11";
+function newDraft(){return {step:0,eleve:"",groupe:"",reponses:["","",""],id:crypto.randomUUID?.()??"",sent:false};}
+let draft=newDraft(), rows=[], pending=false, teacherGeneration=0;
+try{ const old=JSON.parse(localStorage.getItem(storageKey)); if(old?.reponses?.length===steps.length) draft=old; }catch{}
+function persist(){ try{localStorage.setItem(storageKey,JSON.stringify(draft));return true;}catch{return false;} }
+function setTab(teacher){
+  $("student").hidden=teacher; $("teacher").hidden=!teacher;
+  $("studentTab").setAttribute("aria-pressed",String(!teacher)); $("teacherTab").setAttribute("aria-pressed",String(teacher));
+  if(teacher){pause();$("stop").click();}
+}
+$("studentTab").onclick=()=>setTab(false); $("teacherTab").onclick=()=>setTab(true);
+function render(){
+  const final=draft.step===steps.length-1, locked=pending||draft.sent;
+  $("stepLabel").textContent="Étape "+(draft.step+1)+" sur "+steps.length;
+  $("stepTitle").textContent=steps[draft.step][0]; $("question").textContent=steps[draft.step][1];
+  $("studentCode").value=draft.eleve; $("group").value=draft.groupe;
+  $("studentCode").disabled=draft.step>0||locked; $("group").disabled=draft.step>0||locked;
+  $("answer").value=draft.reponses[draft.step]; $("answer").readOnly=locked;
+  $("back").hidden=draft.step===0; $("back").disabled=pending;
+  $("classLabel").hidden=$("classCode").hidden=!final||draft.sent;
+  $("classCode").required=final&&!draft.sent; $("classCode").disabled=locked;
+  $("save").hidden=draft.sent; $("save").disabled=pending;
+  $("save").textContent=final?"Remettre ma copie":"Enregistrer et continuer";
+}
+function capture(){
+  if(draft.sent)return;
+  draft.eleve=$("studentCode").value.trim(); draft.groupe=$("group").value;
+  draft.reponses[draft.step]=$("answer").value.trim();
+}
+function exportFile(name, content, type){
+  const link=document.createElement("a");link.href=URL.createObjectURL(new Blob([content],{type}));link.download=name;link.click();setTimeout(()=>URL.revokeObjectURL(link.href),3000);
+}
+$("download").onclick=()=>{
+  if(pending)return;
+  capture(); exportFile("TP-quai-2-"+(draft.eleve||"brouillon")+".txt",
+  ["TP Quai 2",draft.eleve+" · "+draft.groupe,draft.sent?"Copie remise · "+draft.id:"Copie locale",...steps.map((s,i)=>s[0]+"\n"+draft.reponses[i])].join("\n\n"),"text/plain;charset=utf-8");
+};
+$("back").onclick=()=>{capture(); draft.step--; persist(); render(); $("stepTitle").focus();};
+const endpoint="https://vcrodgslfonzcwfoaqsg.supabase.co/rest/v1/tp_reception_copies";
+function api(code, options={}, query=""){
+  return fetch(endpoint+query,{...options,cache:"no-store",headers:{apikey:"sb_publishable_ikYImUebaJgUTjz_dMKZmA_7rzbBfYj","x-client-info":code,...options.headers}});
+}
+$("exercise").onsubmit=async event=>{
+  event.preventDefault(); if(pending||draft.sent)return;
+  capture(); if(!draft.reponses[draft.step]){$("studentStatus").textContent="Saisis une réponse avant de continuer.";return;}
+  if(draft.step<steps.length-1){
+    draft.step++; const saved=persist(); render(); $("stepTitle").focus();
+    $("studentStatus").textContent=saved?"Étape enregistrée.":"Stockage local indisponible. Télécharge une copie avant de fermer.";
+    return;
+  }
+  const code=$("classCode").value.trim().toLowerCase();
+  if(!/^[a-f0-9]{18}$/.test(code)){ $("studentStatus").textContent="Vérifie le code de séance.";return;}
+  if(!draft.id){$("studentStatus").textContent="Ouvre le TP depuis son lien HTTPS ou télécharge ta copie.";return;}
+  pending=true;persist();render();$("studentStatus").textContent="Envoi en cours…";
+  try{
+    const {id,eleve,groupe,reponses}=draft;
+    const result=await api(code,{method:"POST",headers:{"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify({id,eleve,groupe,reponses})});
+    const exists=result.status===409&&(await result.json().catch(()=>null))?.code==="23505";
+    if(!result.ok&&!exists)throw new Error(result.status===401||result.status===403?"Code de séance refusé.":"La remise n’a pas été confirmée.");
+    draft.sent=true; persist(); $("classCode").value=""; $("studentStatus").textContent="Copie reçue. Référence : "+draft.id;
+  }catch(error){$("studentStatus").textContent=(error instanceof TypeError?"Connexion indisponible.":error.message)+" Réessaie ou télécharge ta copie.";}
+  finally{pending=false;render();}
+};
+function displayedRows(){return rows.filter(row=>!$("filter").value||row.groupe===$("filter").value);}
+function date(value){return new Date(value).toLocaleString("fr-FR",{timeZone:"Europe/Paris"});}
+function showRows(){
+  const filtered=displayedRows(), body=$("results").tBodies[0];body.replaceChildren();
+  for(const row of filtered){
+    const tr=body.insertRow();
+    for(const value of [row.eleve,row.groupe,...row.reponses,date(row.remise)])tr.insertCell().textContent=value;
+  }
+  $("results").hidden=!filtered.length; $("csv").disabled=!filtered.length;
+}
+$("filter").onchange=showRows;
+$("logout").onclick=()=>{teacherGeneration++; $("teacherCode").value="";rows=[];showRows();$("teacherStatus").textContent="Accès fermé.";};
+$("teacherForm").onsubmit=async event=>{
+  event.preventDefault(); const request=++teacherGeneration;
+  const code=$("teacherCode").value.trim().toLowerCase();
+  rows=[];showRows();
+  if(!/^[a-f0-9]{36}$/.test(code)){$("teacherStatus").textContent="Vérifie le code professeur.";return;}
+  $("teacherStatus").textContent="Chargement des copies…";
+  try{
+    const collected=[]; let offset=0;
+    for(;;){
+      const result=await api(code,{},"?select=eleve,groupe,reponses,remise&order=remise.desc,id.desc&limit=200&offset="+offset);
+      if(request!==teacherGeneration)return;
+      if(!result.ok)throw new Error("Lecture indisponible.");
+      const batch=await result.json();
+      if(request!==teacherGeneration)return;
+      collected.push(...batch);
+      if(batch.length<200)break;
+      offset+=batch.length;
+    }
+    rows=collected;showRows();$("teacherStatus").textContent=rows.length?rows.length+" copie(s) reçue(s).":"Aucune copie accessible. Vérifie le code professeur si des élèves ont remis leur travail.";
+  }catch{if(request===teacherGeneration)$("teacherStatus").textContent="Lecture indisponible. Réessaie dans un instant.";}
+};
+$("csv").onclick=()=>{
+  const quote=value=>{const text=String(value);return '"'+(/^[\s]*[=+@-]/.test(text)?"'":"")+text.replaceAll('"','""')+'"';};
+  const lines=[["Identifiant","Groupe","Contrôle","Réserves","Décision","Remise"],...displayedRows().map(row=>[row.eleve,row.groupe,...row.reponses,date(row.remise)])];
+  exportFile("TP-quai-2-copies.csv","\ufeff"+lines.map(line=>line.map(quote).join(";")).join("\r\n"),"text/csv;charset=utf-8");
+};
+render();if(draft.sent)$("studentStatus").textContent="Copie reçue. Référence : "+draft.id;
+</script></body></html>
