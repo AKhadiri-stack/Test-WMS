@@ -11,3 +11,9 @@ Ces règles s’appliquent à tout support de cours et TP HTML créé ou modifi�
 - Avant de partager un lien, vérifier sur la page publiée la lecture vidéo, l’inscription en solo et en binôme, la sauvegarde, la remise et la réception dans l’espace Professeur, le blocage du copier-coller et l’impression. Signaler explicitement les éléments encore en attente ou impossibles à vérifier.
 
 Le TP `tp-stock-disponible.html` sert de référence pour le parcours de remise et la consultation des résultats.
+
+## Mise en page à conserver
+
+La page `eco-droit-contrat-institutions.html` est la référence visuelle. Pour tout nouveau support, partir de son HTML et de son CSS. Pour une mise à jour, conserver la structure et les styles de la page existante en les comparant à cette référence. Reprendre le menu latéral bleu nuit, les accents orange, la hiérarchie des titres, les cartes d’activité, les pictogrammes et les schémas intégrés. Ajouter les nouveaux exercices, lecteurs et espaces Élève et Professeur dans cette même structure et avec les mêmes composants visuels.
+
+Avant livraison, comparer la page à la référence sur grand écran et en largeur Chromebook. Vérifier la navigation, la lisibilité des encadrés, les zones de réponse et l’impression. Modifier l’identité visuelle uniquement sur demande explicite d’Alix.
