@@ -23,10 +23,10 @@ let busy = false;
 let lastStage = -1;
 let active = false;
 function notice(message){ $('notice').textContent = message; }
-async function exchange(action, stage = null, data = null) {
+async function exchange(action, stage = null, data = null, role = ROLE) {
   const response = await fetch(ENDPOINT, {method:'POST',
     headers:{apikey:KEY,'Content-Type':'application/json'},
-    body:JSON.stringify({p_code:code,p_role:ROLE,p_action:action,p_stage:stage,p_data:data})});
+    body:JSON.stringify({p_code:code,p_role:role,p_action:action,p_stage:stage,p_data:data})});
   const result = await response.json();
   if (!response.ok) throw new Error(result.message || 'Échange indisponible.');
   return result;
@@ -36,7 +36,22 @@ async function run(action, stage, data) {
   busy = true;
   document.querySelectorAll('button').forEach(button => button.disabled = true);
   try {
-    const state = await exchange(action,stage,data);
+    let state;
+    try {
+      state = await exchange(action, stage, data);
+    } catch (error) {
+      if (active || action !== 'read' || error.message !== 'Code incorrect pour cet espace.') throw error;
+      const otherRole = 'acheteur';
+      try {
+        await exchange('read', null, null, otherRole);
+      } catch (otherError) {
+        if (otherError.message !== 'Code incorrect pour cet espace.') throw otherError;
+        throw new Error('Code introuvable pour ce TP. Copie ton code individuel complet depuis le registre du TP Achat-Vente.');
+      }
+      sessionStorage.setItem('gatl-tp-transfer-' + otherRole, code);
+      location.replace('achat-vente-' + otherRole + '.html');
+      return;
+    }
     render(state);
     notice(action === 'send' ? 'Document enregistré. Il est disponible dans le dossier de l’autre équipe.' : '');
   } catch(error){ notice(error.message); }
@@ -59,7 +74,7 @@ $('connect').addEventListener('submit',event=>{
   event.preventDefault();
   code=$('code').value.trim().toLowerCase();
   if (!/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/.test(code)) {
-    notice('Saisis le code complet communiqué par ton professeur.');
+    notice('Utilise le code individuel complet du TP Achat-Vente (36 caractères, tirets compris).');
     return;
   }
   run('read');
@@ -111,6 +126,12 @@ function render(state){
     event.preventDefault();
     run('send',state.stage,Object.fromEntries(new FormData(form)));
   };
+}
+const transferredCode = sessionStorage.getItem('gatl-tp-transfer-' + ROLE);
+if (transferredCode) {
+  sessionStorage.removeItem('gatl-tp-transfer-' + ROLE);
+  $('code').value = transferredCode;
+  $('connect').requestSubmit();
 }
 setInterval(()=>{if(active&&!document.hidden&&!busy) run('read');},5000);
 
