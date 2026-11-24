@@ -11,7 +11,7 @@
 <details><summary>Lire la transcription</summary><ol><li>Vendredi, Atelier Nord lance une opération commerciale. Tu travailles au service des achats.</li><li>Identifie la référence des gants, la quantité commandée et la date à laquelle le magasin doit être livré.</li><li>À la réception, compare le bon de livraison et les cartons comptés au quai. Documente tout écart.</li></ol></details></section><form class="panel" id="connect"><h2>Accéder à ton dossier</h2><p class="key-help">Ton code te dirige vers l’espace et le binôme qui t’ont été attribués.</p><label for="code">Code individuel</label><input id="code" type="password" autocomplete="off" spellcheck="false" required><button>Ouvrir le dossier</button></form></div>
 <div class="bar controls" id="controls" hidden><button type="button" id="refresh">Actualiser</button><button type="button" id="print" class="secondary">Imprimer / PDF</button><button type="button" id="leave" class="secondary">Quitter</button></div>
 <p id="notice" role="status"></p><div id="workspace" hidden><p id="context"></p><section class="panel" id="solo-switch" hidden><strong>Mode solo</strong> <button type="button" id="switch-role">Passer au rôle vendeur</button></section><section id="transport" class="panel" hidden><h2>Choix du transport</h2><p>Cas fictif · Lyon → Paris · 90 cartons à livrer vendredi avant 11 h. Le transport annoncé au devis est une estimation.</p><table><thead><tr><th>Transporteur</th><th>Tarif indicatif HT</th><th>Arrivée</th></tr></thead><tbody><tr><td>GEODIS</td><td>85 €</td><td>09:30</td></tr><tr><td>DHL</td><td>75 €</td><td>10:30</td></tr><tr><td>UPS</td><td>65 €</td><td>13:00</td></tr></tbody></table><ol id="transport-log"></ol><p id="transport-status" role="status"></p><form id="transport-form"><label>Décision<select name="decision"></select></label><fieldset id="transport-quote"><legend>Cotation</legend><label>Transporteur<select name="transporteur"><option>GEODIS</option><option>DHL</option><option>UPS</option></select></label><label>Tarif HT (€)<input name="prix" type="number" min=".01" max="99999" step=".01" required></label><label>Arrivée vendredi<select name="horaire"><option>09:30</option><option>10:30</option><option>13:00</option></select></label></fieldset><label>Justification<textarea name="message" maxlength="800" required></textarea></label><button>Transmettre à l’autre équipe</button></form></section>
-<section id="delivery" class="panel" hidden><h2>Suivi du camion et réception</h2><p id="delivery-quote"></p><div class="delivery-scenes"><figure><svg viewBox="0 0 300 210" role="img" aria-label="Carte schématique de France, trajet Lyon vers Paris"><path d="M140 14 157 41 200 51 227 72 216 102 222 141 198 163 184 187 149 175 109 168 84 146 83 115 58 89 26 79 42 65 82 65 91 43 115 51Z" fill="#dbe9ef" stroke="#658399"/><path d="M174 135 Q166 107 144 75" stroke="#1d3557" stroke-dasharray="5 4" fill="none"/><text x="180" y="151">Lyon</text><text x="146" y="64">Paris</text><g id="map-truck"><rect x="-12" y="-9" width="16" height="9" rx="2" fill="#ee8a2a"/><path d="M4 -8h5l5 5v3H4Z" fill="#274b7a"/><circle cx="-7" cy="1" r="2.5"/><circle cx="9" cy="1" r="2.5"/><animateMotion id="route-motion" dur="3s" begin="indefinite" fill="freeze" path="M174 135 Q166 107 144 75"/></g></svg><figcaption>Trajet Lyon → Paris</figcaption><button type="button" id="play-route">Animer le trajet</button></figure><figure><div class="dock-art" aria-hidden="true"><span class="dock-truck">🚚</span><span class="dock-gate">QUAI 2</span></div><figcaption>Mise à quai et contrôle des cartons</figcaption><button type="button" id="play-dock">Animer la mise à quai</button></figure></div><p id="delivery-status" role="status"></p></section><p id="exchange-status" role="status"></p><p id="wait" class="panel" role="status" hidden></p><div class="exchange-layout"><section id="incoming" class="panel" aria-labelledby="incoming-title" hidden><h2 id="incoming-title">Dernier document reçu</h2><div id="incoming-document"></div></section><section id="task" class="panel" hidden><h2 id="task-title"></h2><p id="task-brief"></p><form id="document"></form></section></div><h2 id="history-title" hidden>Documents échangés</h2><div id="history"></div></div></main></div>
+<section id="delivery" class="panel" hidden><h2>Suivi du camion et réception</h2><p id="delivery-quote"></p><div class="delivery-scenes"><figure><svg viewBox="0 0 300 210" role="img" aria-label="Carte schématique de France, trajet Lyon vers Paris"><path d="M140 14 157 41 200 51 227 72 216 102 222 141 198 163 184 187 149 175 109 168 84 146 83 115 58 89 26 79 42 65 82 65 91 43 115 51Z" fill="#dbe9ef" stroke="#658399"/><path d="M174 135 Q166 107 144 75" stroke="#1d3557" stroke-dasharray="5 4" fill="none"/><text x="180" y="151">Lyon</text><text x="146" y="64">Paris</text><g id="map-truck"><rect x="-12" y="-9" width="16" height="9" rx="2" fill="#ee8a2a"/><path d="M4 -8h5l5 5v3H4Z" fill="#274b7a"/><circle cx="-7" cy="1" r="2.5"/><circle cx="9" cy="1" r="2.5"/><animateMotion id="route-motion" dur="3s" begin="indefinite" fill="freeze" path="M174 135 Q166 107 144 75"/></g></svg><figcaption>Trajet Lyon → Paris</figcaption><button type="button" id="play-route">Animer le trajet</button></figure><figure><div class="dock-art" aria-hidden="true"><span class="dock-truck">🚚</span><span class="dock-gate">QUAI 2</span></div><figcaption>Mise à quai et contrôle des cartons</figcaption><button type="button" id="play-dock">Animer la mise à quai</button></figure></div><p id="delivery-status" role="status"></p></section><p id="draft-status" role="status"></p><p id="exchange-status" role="status"></p><p id="wait" class="panel" role="status" hidden></p><div class="exchange-layout"><section id="incoming" class="panel" aria-labelledby="incoming-title" hidden><h2 id="incoming-title">Dernier document reçu</h2><div id="incoming-document"></div></section><section id="task" class="panel" hidden><h2 id="task-title"></h2><p id="task-brief"></p><form id="document"></form></section></div><h2 id="history-title" hidden>Documents échangés</h2><div id="history"></div></div></main></div>
 <script>
 const ROLE="acheteur";
 const ENDPOINT='https://vcrodgslfonzcwfoaqsg.supabase.co/rest/v1/rpc/gatl_tp_exchange';
@@ -32,7 +32,7 @@ let active = false;
 function notice(message){ $('notice').textContent = message; }
 async function exchange(action, stage = null, data = null, role = ROLE) {
   const response = await fetch(ENDPOINT, {method:'POST',
-    headers:{apikey:KEY,'Content-Type':'application/json'},
+    keepalive:action==='draft',headers:{apikey:KEY,'Content-Type':'application/json'},
     body:JSON.stringify({p_code:code,p_role:role,p_action:action,p_stage:stage,p_data:data})});
   const result = await response.json();
   if (!response.ok) throw new Error(result.message || 'Échange indisponible.');
@@ -141,6 +141,7 @@ function render(state){
     form.append(label);
   }
   form.append(node('button','Valider et transmettre'));
+  attachDraft(form,state,state.stage);
   form.onsubmit=event=>{
     event.preventDefault();
     run('send',state.stage,Object.fromEntries(new FormData(form)));
@@ -184,7 +185,9 @@ function renderTransport(state) {
       $('transport-quote').disabled = !enabled;
     }
     choice.onchange = quoteFields;
+    attachDraft(form,state,100+log.length);
     quoteFields();
+    choice.addEventListener('input',() => { quoteFields(); });
     form.onsubmit = event => {
       event.preventDefault();
       run('transport',log.length,Object.fromEntries(new FormData(form)));
@@ -209,6 +212,58 @@ $('switch-role').onclick = () => {
   sessionStorage.setItem('gatl-tp-transfer-vendeur', code);
   location.replace('achat-vente-vendeur.html');
 };
+
+let saveTimer;
+let draftInFlight=false;
+const pendingDrafts=new Map();
+function storeDraft(key, value) {
+  try { if(value) localStorage.setItem(key,JSON.stringify(value)); else localStorage.removeItem(key); return true; }
+  catch { return false; }
+}
+async function saveDrafts() {
+  if(draftInFlight || !navigator.onLine) return;
+  draftInFlight=true;
+  try {
+    for(const [key, item] of pendingDrafts) {
+      try {
+        await exchange('draft',item.slot,item.payload);
+        if(pendingDrafts.get(key)===item){ pendingDrafts.delete(key); storeDraft(key,null); }
+        $('draft-status').textContent='Brouillon enregistré en ligne.';
+      } catch(error) {
+        if(error.message==='Cette étape a changé.'){
+          if(pendingDrafts.get(key)===item){ pendingDrafts.delete(key); storeDraft(key,null); }
+          continue;
+        }
+        $('draft-status').textContent=item.local?'Brouillon sur cet appareil. Synchronisation à réessayer.':'Sauvegarde indisponible.';
+        break;
+      }
+    }
+  } finally { draftInFlight=false; }
+}
+function attachDraft(form,state,slot) {
+  if(!state.draft_key) return;
+  const key='gatl-achat-vente:'+state.draft_key+':'+ROLE+':'+slot;
+  let local;
+  try { local=JSON.parse(localStorage.getItem(key)); } catch {}
+  const draft=local || state.drafts?.[slot];
+  for(const [name,value] of Object.entries(draft||{})){
+    const field=form.elements.namedItem(name);
+    if(field && typeof value==='string') field.value=value;
+  }
+  if(local){pendingDrafts.set(key,{slot,payload:local,local:true}); void saveDrafts();}
+  form.oninput=()=>{
+    const payload=Object.fromEntries(new FormData(form));
+    const localSaved=storeDraft(key,payload);
+    pendingDrafts.set(key,{slot,payload,local:localSaved});
+    $('draft-status').textContent=localSaved?'Brouillon sur cet appareil. Synchronisation…':'Synchronisation…';
+    clearTimeout(saveTimer);
+    saveTimer=setTimeout(saveDrafts,600);
+  };
+}
+window.addEventListener('online',saveDrafts);
+document.addEventListener('visibilitychange',()=>{if(document.hidden) void saveDrafts();});
+setInterval(()=>{if(active && !document.hidden && pendingDrafts.size) void saveDrafts();},5000);
+
 const transferredCode = sessionStorage.getItem('gatl-tp-transfer-' + ROLE);
 if (transferredCode) {
   sessionStorage.removeItem('gatl-tp-transfer-' + ROLE);
