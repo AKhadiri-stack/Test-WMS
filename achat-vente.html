@@ -1,0 +1,66 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Former un binôme · TP Achat–Vente</title><style>:root{--navy:#1d3557;--navy2:#274b7a;--orange:#ee8a2a;--bg:#f3f5f9;--line:#e2e7ef;--txt:#1f2a37}*{box-sizing:border-box}body{margin:0;font:16px/1.5 Inter,system-ui,sans-serif;background:var(--bg);color:var(--txt)}.shell{display:grid;grid-template-columns:240px minmax(0,1fr);min-height:100vh}aside{padding:26px 18px;background:var(--navy);color:white}aside strong{font-size:19px}aside p{color:#e0e8f5;margin:5px 0 32px}ol{padding-left:25px}li{padding:7px 5px;margin-bottom:5px}li[aria-current]{background:var(--orange);color:#14253b;border-radius:6px;font-weight:750}main{width:100%;max-width:1120px;padding:24px 36px 60px}h1,h2,h3{line-height:1.2}h1{margin:0 0 20px}h2{margin:0 0 12px}.hero{background:linear-gradient(100deg,var(--navy),var(--navy2));color:white;border-radius:14px;padding:25px;margin-bottom:20px;border-left:6px solid var(--orange)}.hero p{margin:0}.panel,article{background:white;border:1px solid var(--line);border-radius:12px;padding:22px;margin-bottom:15px;overflow-wrap:anywhere}.bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.bar>*{margin:0}label{display:block;font-weight:650;margin:12px 0}input,textarea,select{display:block;width:100%;margin-top:5px;padding:10px;border:1px solid #8795a9;border-radius:6px;font:inherit}textarea{min-height:88px;resize:vertical}button{background:var(--navy);color:white;border:0;border-radius:7px;padding:10px 15px;font:inherit;font-weight:700;cursor:pointer}button.secondary{background:#e7edf5;color:var(--navy)}button:disabled{opacity:.55;cursor:wait}button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid #bd6011;outline-offset:2px}#notice{min-height:1.5em;color:#8a3820}dt{font-weight:700}dd{margin:0 0 10px;white-space:pre-wrap}summary{cursor:pointer;font-weight:700}small{font-size:14px}code{overflow-wrap:anywhere} [hidden]{display:none!important}@media(max-width:710px){.shell{display:block}aside{padding:15px}aside p{margin:3px 0}aside ol{display:none}main{padding:20px 14px}}@media print{aside,button,form,#notice,#task,#wait,.bar.controls{display:none!important}.shell{display:block}main{max-width:none;padding:0}.hero{color:#172945;background:white}.panel,article{break-inside:avoid}}
+:root{--ink:#172636;--paper:#f1f4f6;--navy:#101e2b;--accent:#f0a84f;--brand:#203c62}body{background:var(--paper);color:var(--ink)}body.vendeur{--brand:#873e2b;--accent:#f5a573}.shell{grid-template-columns:248px minmax(0,1fr)}aside{background:var(--navy);padding:24px 18px}aside p{margin:8px 0 32px}aside ol{border-left:1px solid #536472;padding-left:21px}aside li{padding:8px;font-size:.93rem}.brandmark{display:flex;align-items:center;gap:12px}.brandmark i{width:43px;height:43px;display:grid;place-items:center;border-radius:12px;background:var(--accent);color:#18242e;font-size:1.45rem;font-style:normal;font-weight:900}.brandmark b{display:block}.brandmark small{display:block;color:#c6d1da}.hero{border:none;background:var(--navy);padding:0;overflow:hidden;border-radius:20px;position:relative;min-height:320px;display:grid;align-items:end}.hero:before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,#0b1825 3%,#0b1825e8 26%,#0b182525 85%),var(--scene);background-size:cover;background-position:center}.hero-copy{position:relative;padding:32px;max-width:560px}.hero-copy h1{font-size:clamp(2.2rem,5vw,4rem);letter-spacing:-.055em;margin:12px 0}.hero-copy p{color:#e7edf4}.role-label{display:inline-block;border:1px solid #91a3b6;border-radius:20px;padding:5px 13px;color:white;font-size:.87rem}.intro{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(245px,1fr);gap:16px}.intro .panel{margin-bottom:0}.media-panel,.flow{margin-bottom:16px!important}.flow ol{display:flex;gap:12px;flex-wrap:wrap;list-style:none;padding:0;margin:0}.flow li{padding:8px 11px;border-radius:8px;background:#ecf0f4;margin:0;font-weight:650}.flow li:not(:last-child):after{content:' ›';color:#506077;margin-left:7px}.scene-player{background:#142839;color:white;position:relative;min-height:200px;border-radius:12px;overflow:hidden;display:flex;align-items:end;margin-bottom:12px}.scene-player:before{content:'';position:absolute;inset:0;background:linear-gradient(0deg,#101e2bf5,#101e2b26 100%),var(--scene);background-size:cover;background-position:50% 50%;transition:background-position 1.4s ease}.scene-player[data-shot="1"]:before{background-position:30% 30%}.scene-player[data-shot="2"]:before{background-position:75% 70%}.scene-caption{position:relative;padding:19px}.scene-caption h3{margin:0 0 5px;font-size:1.12rem}.scene-caption p{margin:0;color:#e7edf4}.tracks{width:100%;accent-color:var(--brand);margin-bottom:10px}.media-panel details{margin-top:12px}.key-help{color:#435565;margin-top:0;margin-bottom:15px}.panel,article{box-shadow:0 4px 18px #1d355708}#connect input{margin-bottom:12px}#connect button:not(.secondary){width:100%;background:var(--brand)}#context{font-weight:700}#notice{font-weight:650}#task{border-top:4px solid var(--accent)}@media(max-width:1040px){.intro{grid-template-columns:1fr}.hero{min-height:280px}}@media(max-width:710px){.shell{display:block}.hero{min-height:250px}.hero-copy{padding:21px}aside p{margin:3px 0}.flow ol{gap:6px}}@media print{.intro,.flow{display:none!important}.hero{min-height:0}.hero:before{display:none}.hero-copy p,.role-label{color:#263744}}.exchange-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:20px;align-items:start}.exchange-layout:has(#incoming[hidden]),.exchange-layout:has(#task[hidden]){grid-template-columns:1fr}#incoming{background:#edf4f8;border-top:4px solid var(--brand)}#incoming article{padding:0;margin:0;background:transparent;border:0;box-shadow:none}#exchange-status{min-height:1.5em;font-weight:700;color:var(--navy)}@media(max-width:850px){.exchange-layout{grid-template-columns:1fr}}@media print{#incoming,#exchange-status{display:none!important}}</style><link rel="stylesheet" href="achat-vente-scene.css"></head><body><main>
+<header class="hero"><div class="hero-copy"><h1>TP Achat–Vente</h1><p>Connecte-toi et forme ton binôme.</p></div></header>
+<form id="login" class="panel"><label>Ton code individuel<input id="code" type="password" required autocomplete="off" spellcheck="false"></label><button>Continuer</button></form>
+<p id="status" role="status"></p>
+<section id="pairing" hidden><section class="panel"><h2>Ton code d’invitation</h2><p>Partage ce code avec ton camarade. Garde ton code individuel privé.</p><input id="my-invite" readonly aria-label="Ton code d’invitation"></section>
+<section id="incoming" class="panel" hidden><h2>Invitations reçues</h2><div id="invitations"></div></section>
+<form id="invite-form" class="panel"><h2>Inviter un camarade</h2><label>Ton rôle<select id="role"><option value="acheteur">Acheteur</option><option value="vendeur">Vendeur</option></select></label><label>Code d’invitation de ton camarade<input id="invite" required autocomplete="off" spellcheck="false"></label><button>Envoyer l’invitation</button><p id="pending"></p></form></section></main>
+<script>
+const KEY="sb_publishable_ikYImUebaJgUTjz_dMKZmA_7rzbBfYj";
+const $ = id => document.getElementById(id);
+const endpoint = 'https://vcrodgslfonzcwfoaqsg.supabase.co/rest/v1/rpc/gatl_tp_pair';
+const uuid = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
+const clean = value => value.replace(/\s/g,'').replace(/[‐‑–—]/g,'-');
+let code = '';
+let busy = false;
+let connected = false;
+let visibleInvitations = '';
+async function request(action, invitation=null, role=null) {
+  if (busy) return;
+  busy = true;
+  try {
+    const res = await fetch(endpoint, {method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({p_code:code,p_action:action,p_invite:invitation,p_role:role})});
+    const result = await res.json();
+    if(!res.ok) throw Error(result.message || 'Connexion indisponible.');
+    if(result.role) {
+      sessionStorage.setItem('gatl-tp-transfer-' + result.role, code);
+      location.replace('achat-vente-' + result.role + '.html');
+      return;
+    }
+    connected = true;
+    $('login').hidden = true;
+    $('pairing').hidden = false;
+    $('status').textContent = '';
+    $('my-invite').value = result.invite;
+    $('pending').textContent = result.pending ? 'Invitation envoyée. Attends la confirmation de ton camarade.' : '';
+    $('incoming').hidden = result.incoming.length === 0;
+    const signature = JSON.stringify(result.incoming);
+    if(signature !== visibleInvitations) {
+      visibleInvitations = signature;
+      $('invitations').replaceChildren(...result.incoming.map(item => {
+        const button = document.createElement('button');
+        button.textContent = 'Accepter ' + item.alias + ' · Je serai ' + item.role;
+        button.onclick = () => request('accept',item.id);
+        return button;
+      }));
+    }
+  } catch(e) { $('status').textContent = e.message; }
+  finally { busy = false; }
+}
+$('login').onsubmit = event => {
+  event.preventDefault();
+  if(busy) return;
+  code = clean($('code').value);
+  if(!uuid.test(code)) { $('status').textContent = 'Colle ton code individuel complet.'; return; }
+  request('read');
+};
+$('invite-form').onsubmit = event => {
+  event.preventDefault();
+  const invitation = clean($('invite').value);
+  if(!uuid.test(invitation)) { $('status').textContent = 'Colle le code d’invitation complet de ton camarade.'; return; }
+  request('invite',invitation,$('role').value);
+};
+setInterval(() => { if(connected && !document.hidden) request('read'); }, 3000);
+</script></body></html>
