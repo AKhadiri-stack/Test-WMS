@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Correction du TP Stock et expédition · G1</title>
+<style>
+:root{font:16px/1.5 system-ui,sans-serif;color:#18263c;background:#edf2f8}
+body{margin:0}main{margin:auto;max-width:55rem;padding:2rem 1rem}
+h1,h2{line-height:1.2}section,article{background:white;border:1px solid #cbd7e6;border-radius:.8rem;padding:1.2rem;margin:1rem 0}
+label{display:grid;gap:.3rem;margin:.8rem 0}input,textarea,button{font:inherit;padding:.55rem;border:1px solid #8093ac;border-radius:.35rem}
+button{background:#21486f;color:white;cursor:pointer}button:disabled{opacity:.55;cursor:wait}textarea{min-height:6em}
+p{overflow-wrap:anywhere}ol li p{white-space:pre-wrap}small{color:#435671}
+</style></head>
+<body><main>
+<h1>Corriger le TP Stock et expédition</h1>
+<p>2BACGTL2 · Groupe 1</p>
+<section id="login"><h2>Connexion professeur</h2>
+<form id="login-form"><label>Adresse e-mail<input id="email" type="email" autocomplete="username" required></label>
+<label>Mot de passe<input id="password" type="password" autocomplete="current-password" required></label>
+<button>Se connecter</button></form></section>
+<section id="professor" hidden><button id="logout" type="button">Se déconnecter</button>
+<form id="search-form"><label>Code individuel de l’élève<input id="code" pattern="[A-Za-z0-9\-]{2,24}" maxlength="24" required></label><button>Rechercher la copie</button></form>
+<article id="copy" hidden><h2 id="copy-title"></h2><p id="copy-date"></p><ol id="answers"></ol>
+<form id="grade-form"><label>Note sur 20<input id="grade" type="number" min="0" max="20" step="0.01" required></label>
+<label>Commentaire<textarea id="comment" maxlength="10000"></textarea></label>
+<button>Enregistrer l’évaluation</button></form></article></section>
+<p id="status" role="status" aria-live="polite"></p></main>
+<script>
+const origin = 'https://vcrodgslfonzcwfoaqsg.supabase.co';
+const apiKey = 'sb_publishable_ikYImUebaJgUTjz_dMKZmA_7rzbBfYj';
+const copies = '/rest/v1/tp_expedition_g1';
+const byId = id => document.getElementById(id);
+const questions = ["1. Calculer le stock libre · 6 pts","2. Préparer la commande prioritaire · 5 pts","3. Préparer la deuxième commande · 5 pts","4. Écrit individuel · 4 pts","5. Éditer le bon de prélèvement · 5 pts","6. Traiter les mises à jour WMS · 5 pts","7. Vérifier la CMD-243 · 6 pts","8. Remettre un bilan de chargement · 4 pts"];
+let token = '';
+let currentCopy = null;
+
+async function request(path, options = {}, accessToken = token) {
+  const headers = {apikey: apiKey, 'Content-Type': 'application/json', ...options.headers};
+  if (accessToken) headers.Authorization = 'Bearer ' + accessToken;
+  const response = await fetch(origin + path, {...options, headers, cache: 'no-store', signal: AbortSignal.timeout(10000)});
+  if (!response.ok) {
+    if (accessToken && response.status === 401) showSession('');
+    throw new Error(response.status === 401 ? 'Connexion refusée ou expirée.' : 'Cette action est indisponible.');
+  }
+  return response.json();
+}
+
+function status(message) {
+  byId('status').textContent = message;
+}
+
+function showSession(accessToken) {
+  token = accessToken;
+  currentCopy = null;
+  byId('login').hidden = Boolean(token);
+  byId('professor').hidden = !token;
+  byId('copy').hidden = true;
+  byId('password').value = '';
+  byId('code').value = '';
+  byId('answers').replaceChildren();
+  byId('copy-title').textContent = '';
+  byId('copy-date').textContent = '';
+  byId('grade').value = '';
+  byId('comment').value = '';
+}
+
+function handleSubmit(id, run) {
+  const form = byId(id);
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    const control = form.querySelector('button');
+    if (control.disabled) return;
+    control.disabled = true;
+    status('');
+    try {
+      await run();
+    } catch (error) {
+      status(error instanceof TypeError || error.name === 'TimeoutError' ? 'Connexion interrompue. Réessaie.' : error.message);
+    } finally {
+      control.disabled = false;
+    }
+  });
+}
+
+handleSubmit('login-form', async () => {
+  const session = await request('/auth/v1/token?grant_type=password',
+    {method: 'POST', body: JSON.stringify({email: byId('email').value.trim(), password: byId('password').value})}, '');
+  const teachers = await request('/rest/v1/tp_expedition_professeurs?select=user_id', {}, session.access_token);
+  if (teachers.length !== 1) {
+    showSession('');
+    status('Ce compte n’a pas accès aux copies de ce TP.');
+    return;
+  }
+  showSession(session.access_token);
+  status('Connexion professeur active.');
+});
+byId('logout').addEventListener('click', () => {
+  showSession('');
+  status('Session fermée.');
+});
+
+async function codeHash(value) {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value.trim().toUpperCase()));
+  return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
+}
+
+handleSubmit('search-form', async () => {
+  const activeToken = token;
+  currentCopy = null;
+  byId('copy').hidden = true;
+  const hash = await codeHash(byId('code').value);
+  const [row] = await request(copies +
+    '?code_hash=eq.' + hash + '&select=id,reference_eleve,reponses,mise_a_jour,note,commentaire', {}, activeToken);
+  if (activeToken !== token) return;
+  if (!row?.mise_a_jour) {
+    status(row ? 'Aucune réponse enregistrée pour ce code.' : 'Code introuvable pour le G1.');
+    return;
+  }
+  byId('copy-title').textContent = 'Copie ' + row.reference_eleve;
+  byId('copy-date').textContent = 'Dernière sauvegarde le ' + new Date(row.mise_a_jour).toLocaleString('fr-FR', {timeZone:'Europe/Paris'});
+  byId('answers').replaceChildren(...row.reponses.map((answer, index) => {
+    const item = document.createElement('li');
+    const label = document.createElement('strong');
+    label.textContent = questions[index] ?? ('Question ' + (index + 1));
+    const value = document.createElement('p');
+    value.textContent = answer.trim() || 'Sans réponse';
+    item.append(label, value);
+    return item;
+  }));
+  byId('grade').value = row.note ?? '';
+  byId('comment').value = row.commentaire ?? '';
+  currentCopy = row;
+  byId('copy').hidden = false;
+});
+
+handleSubmit('grade-form', async () => {
+  if (!currentCopy) return;
+  const activeToken = token;
+  const row = currentCopy;
+  const [updated] = await request(copies + '?id=eq.' + row.id +
+    '&mise_a_jour=eq.' + encodeURIComponent(row.mise_a_jour) + '&select=id,note', {
+    method: 'PATCH', headers: {Prefer: 'return=representation'},
+    body: JSON.stringify({note: byId('grade').valueAsNumber, commentaire: byId('comment').value.trim()})
+  }, activeToken);
+  if (activeToken === token && currentCopy === row) status(updated ? 'Évaluation enregistrée.' :
+    'La copie a changé depuis son ouverture. Recherche-la de nouveau avant de noter.');
+});
+</script></body></html>
