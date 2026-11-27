@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="fr"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulateur cariste 3D · Atelier GATL</title>
+<style>
+:root{color-scheme:dark;--bg:#0a1325;--panel:#122039;--line:#2a3c55;--text:#edf5ff;--muted:#a9bbd0;--accent:#67e2c6;--amber:#ffcb71}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px system-ui,sans-serif}header,main{max-width:1600px;margin:auto;padding:0 24px}header{display:flex;align-items:center;justify-content:space-between;min-height:74px;gap:18px}.brand{display:flex;align-items:center;gap:13px}.logo{display:grid;place-items:center;background:var(--accent);color:#102636;border-radius:10px;width:40px;height:40px;font-weight:850}.brand small{display:block;color:var(--muted);margin-top:3px}h1,h2,h3,p{margin:0}h1{font-size:20px}h2{font-size:22px}h3{font-size:15px}.tabs,.row{display:flex;gap:8px;flex-wrap:wrap}button,input,select,textarea{font:inherit}button{cursor:pointer;border:1px solid var(--line);color:var(--text);background:#172945;border-radius:8px;padding:9px 12px;font-weight:650}button:hover,button:focus-visible{border-color:var(--accent)}button[aria-pressed=true],.primary{background:var(--accent);color:#112e32;border-color:transparent}button:disabled{opacity:.45;cursor:default}main{display:grid;grid-template-columns:minmax(0,1fr) 345px;gap:16px;padding-bottom:24px}.scene,.card{border:1px solid var(--line);background:var(--panel);border-radius:15px;overflow:hidden}.viewport{position:relative;height:clamp(450px,67vh,850px);background:#152940}canvas{display:block}#view{width:100%;height:100%;outline:none}#map{width:126px;height:151px;border:1px solid #597088;border-radius:9px;background:#102135dc}.hud{position:absolute;inset:12px 12px auto;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;pointer-events:none}.chip{padding:8px 10px;border:1px solid #597088;border-radius:8px;background:#0d1928e8;font-size:13px}.controls{padding:12px;display:grid;gap:8px}.keys{display:flex;flex-wrap:wrap;gap:6px 14px;color:var(--muted);font-size:13px}kbd{border:1px solid #54708a;border-radius:4px;padding:1px 4px;color:white}aside{display:grid;align-content:start;gap:12px}.card{padding:15px}.stack{display:grid;gap:10px}.eyebrow,.muted{color:var(--muted);font-size:13px}.score{display:flex;justify-content:space-between}.score strong{color:var(--accent)}progress{width:100%;accent-color:var(--accent);height:11px}.target{color:var(--amber);font-weight:700}.status{min-height:43px;color:#c4d9ec}.touch button{touch-action:none}ol{margin:0;padding-left:24px;display:grid;gap:5px;color:var(--muted);font-size:13px}.active{color:#fff;font-weight:700}.done{color:var(--accent)}dialog{width:min(600px,96vw);max-height:90vh;overflow:auto;border:1px solid var(--line);border-radius:14px;background:#122039;color:var(--text);padding:22px}dialog::backdrop{background:#040910c9}label{display:grid;gap:4px}input,select,textarea{width:100%;background:#0a1529;border:1px solid #4f6683;border-radius:6px;color:white;padding:7px}table{border-collapse:collapse;width:100%;font-size:13px}td,th{border:1px solid var(--line);padding:7px;text-align:left}.formerror{color:var(--amber)}[hidden]{display:none!important}@media(max-width:900px){main{grid-template-columns:1fr}header,main{padding-inline:10px}.viewport{height:52vh;min-height:320px}aside{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}}
+</style>
+<header><div class="brand"><span class="logo" aria-hidden="true">G</span><div><h1>Simulateur cariste 3D</h1><small>Atelier GATL · Château d’Épluches Log</small></div></div><nav class="tabs" aria-label="Mode de jeu"><button id="training" aria-pressed="true">Parcours</button><button id="walk" aria-pressed="false">Promenade</button></nav></header>
+<main><section class="scene" aria-label="Entrepôt 3D"><div class="viewport"><canvas id="view" tabindex="0" aria-label="Vue de l’entrepôt 3D"></canvas><div class="hud"><div class="chip" id="vehicle"></div><canvas id="map" width="126" height="151" aria-label="Minicarte"></canvas></div></div><div class="controls"><div class="keys"><span><kbd>Z</kbd> <kbd>Q</kbd> <kbd>S</kbd> <kbd>D</kbd> ou flèches</span><span><kbd>E</kbd> Interagir</span><span><kbd>R</kbd> Monter les fourches</span><span><kbd>F</kbd> Descendre</span><span><kbd>Espace</kbd> Freiner</span></div><div class="row touch"><button data-key="q" aria-label="Tourner à gauche">←</button><button data-key="z" aria-label="Avancer">↑</button><button data-key="s" aria-label="Reculer">↓</button><button data-key="d" aria-label="Tourner à droite">→</button><button data-key="r">Fourches ▲</button><button data-key="f">Fourches ▼</button><button id="interact">Interagir</button></div></div></section>
+<aside><section class="card stack" aria-label="Progression"><div class="score"><span id="step"></span><strong id="score"></strong></div><progress id="progress" max="8" value="0" aria-label="Missions validées"></progress><h2 id="mission"></h2><p id="instruction"></p><p class="target" id="target"></p><div class="row"><button class="primary" id="workButton">Ouvrir le dossier</button><button id="recover">Dernière position sûre</button></div><p class="status" id="status" role="status"></p></section><section class="card stack"><h3>Les missions du parcours</h3><ol id="remaining"></ol><button id="report" hidden>Imprimer le bilan</button><button id="reset">Recommencer le parcours</button></section></aside></main>
+<dialog id="documentDialog" aria-labelledby="formTitle"><form class="stack" id="documentForm"><h2 id="formTitle"></h2><div id="formBody" class="stack"></div><p id="formError" class="formerror" role="alert"></p><div class="row"><button class="primary" id="check" type="submit">Valider</button><button id="dismiss" type="button">Fermer</button></div></form></dialog>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const storeKey = 'gatl-cariste-3d-2026-v1';
+const locations = {
+  park:{x:9,z:7,label:'Parking chariots'}, desk:{x:4,z:8,label:'Bureau réception'},
+  inbound:{x:29,z:7,label:'Quai réception'}, control:{x:24,z:12,label:'Zone contrôle'},
+  a01:{x:15,z:22,label:'A-01-01'}, a02:{x:15,z:29,label:'A-02-01'},
+  b01:{x:23,z:37,label:'B-01-01'}, b02:{x:23,z:45,label:'B-02-01'},
+  outbound:{x:31,z:53,label:'Quai expédition'}
+};
+const missions = [
+  {title:'Prise de poste',text:'Effectue les contrôles de départ du chariot avant d’entrer dans la zone de circulation.',form:'safety'},
+  {title:'Récupérer le bon de livraison',text:'Conduis jusqu’au bureau réception. Arrête ton chariot près de la borne, puis récupère le BL du camion au quai réception.',actions:[['desk','bl']]},
+  {title:'Décharger et contrôler',text:'Prends la palette informatique au quai réception. Dépose-la à l’emplacement libre de la zone contrôle.',actions:[['inbound','pick','PC-241'],['control','drop']]},
+  {title:'Émettre des réserves',text:'Compare le bon de livraison avec le relevé physique. Saisis la quantité manquante et formule une réserve précise.',form:'reserve'},
+  {title:'Ranger à l’adresse WMS',text:'Le WMS attribue A-01-01 à la palette réceptionnée. Reprends-la en zone contrôle, puis range-la à cette adresse.',actions:[['control','pick','PC-241'],['a01','drop']]},
+  {title:'Libérer un emplacement',text:'L’emplacement A-02-01 est plein. Le WMS autorise le transfert de la palette stockée vers B-01-01. Fais le déplacement puis range la palette ACCESS-15 en A-02-01.',actions:[['a02','pick','STOCK-08'],['b01','drop'],['b02','pick','ACCESS-15'],['a02','drop']]},
+  {title:'Préparer et expédier',text:'Prélève la palette CLIENT-20, déposée en zone contrôle, et dépose-la au quai expédition. Vérifie ensuite le dossier de départ.',actions:[['control','pick','CLIENT-20'],['outbound','drop'],['outbound','shipping']]},
+  {title:'Fin de poste',text:'Retourne au parking. Immobilise le chariot et abaisse les fourches à fond avant de valider ta fin de poste.',actions:[['park','finish']]}
+];
+const initialPallets = {inbound:'PC-241',a02:'STOCK-08',b02:'ACCESS-15'};
+const actionNames = {bl:'récupérer le BL',pick:'prendre la palette',drop:'déposer la palette',shipping:'vérifier l’expédition',finish:'terminer le poste'};
+function newRun(){return {mission:0,part:0,carried:null,pallets:{...initialPallets},fork:0,x:9,z:10,angle:0};}
+function loadRun(){
+  try{
+    const data=JSON.parse(localStorage.getItem(storeKey));
+    if(data && Number.isInteger(data.mission) && data.mission>=0 && data.mission<=8 &&
+      Number.isInteger(data.part) && data.pallets && [data.x,data.z,data.angle,data.fork].every(Number.isFinite)) return data;
+  }catch{}
+  return newRun();
+}
+let run=loadRun();
+let mode='training', walker={x:19,z:14,angle:0}, motion=0, safe={x:run.x,z:run.z,angle:run.angle};
+let message='Ouvre le dossier avant de démarrer.';
+const keys=new Set();
+const view=$('view'), ctx=view.getContext('2d'), map=$('map').getContext('2d');
+const dialog=$('documentDialog');
+function save(){try{localStorage.setItem(storeKey,JSON.stringify(run));}catch{}}
+function mission(){return missions[run.mission];}
+function action(){return mission()?.actions?.[run.part];}
+function tell(text){message=text;$('status').textContent=text;}
+function renderHud(){
+  const walking=mode==='walk', current=mission(), next=action();
+  $('training').setAttribute('aria-pressed',String(!walking));
+  $('walk').setAttribute('aria-pressed',String(walking));
+  $('step').textContent=walking?'Exploration libre':current?'Mission '+(run.mission+1)+' / 8':'Parcours terminé';
+  $('score').textContent=(run.mission*100)+' / 800 pts';
+  $('progress').value=run.mission;
+  $('mission').textContent=walking?'Promenade en entrepôt':current?.title??'Parcours validé';
+  $('instruction').textContent=walking?'Explore les allées, les quais et les zones de contrôle à pied.':current?.text??'Tu as validé les huit missions. Ton bilan atteste ta réussite dans le simulateur d’entraînement CACES.';
+  $('target').textContent=!walking&&next ? locations[next[0]].label+' · '+actionNames[next[1]] : '';
+  $('workButton').hidden=walking||!(current?.form||next?.[1]==='bl'||next?.[1]==='shipping');
+  $('workButton').textContent=current?.form==='safety'?'Contrôles de départ':current?.form==='reserve'?'Comparer le BL et le relevé':next?.[1]==='bl'?'Lire le BL':next?.[1]==='shipping'?'Dossier d’expédition':'Ouvrir le dossier';
+  $('report').hidden=Boolean(current);
+  $('recover').hidden=walking||!current;
+  $('status').textContent=walking?'Tu peux reprendre le parcours à tout moment.':message;
+  $('remaining').replaceChildren(...missions.map((item,i)=>{
+    const li=document.createElement('li');li.textContent=item.title;
+    li.className=i<run.mission?'done':i===run.mission?'active':'';
+    if(i===run.mission)li.setAttribute('aria-current','step');return li;
+  }));
+}
+function finishMission(){
+  run.mission++;run.part=0;
+  if(run.mission===6)run.pallets.control='CLIENT-20';
+  tell(run.mission===8?'8 missions validées. Entraînement CACES réussi dans le simulateur.':'Mission réussie · +100 points. La suivante est disponible.');
+  save();renderHud();
+}
+function advance(){
+  run.part++;
+  if(run.part>=mission().actions.length){finishMission();return;}
+  tell('Action réussie. Rejoins le prochain emplacement.');
+  save();renderHud();
+}
+const deliveries='<table><thead><tr><th>Référence</th><th>Article</th><th>Quantité sur le BL</th></tr></thead><tbody><tr><td>PC-241</td><td>Ordinateurs portables</td><td>24 colis</td></tr></tbody></table>';
+const forms={
+  safety:{title:'Contrôles avant utilisation',body:
+    '<p>Choisis une réponse pour chaque situation.</p><label>Quel est le premier contrôle ?<select required name="start"><option value="">Choisir</option><option value="accelerate">Accélérer pour tester le chariot</option><option value="inspect">Faire le tour du chariot et inspecter les éléments visibles</option></select></label><label>Que fais-tu si tu constates une fuite ?<select required name="defect"><option value="">Choisir</option><option value="alert">Immobiliser et signaler l’anomalie</option><option value="continue">Poursuivre la mission</option></select></label><label>Comment circules-tu avec une palette en allée ?<select required name="fork"><option value="">Choisir</option><option value="up">Fourches en position haute</option><option value="low">Fourches abaissées en position de roulage</option></select></label>'},
+  bl:{title:'Bon de livraison BL-26041',body:'<p>Fournisseur Numéria Distribution · Camion au quai réception</p>'+deliveries+'<p>Contrôle la livraison à partir de ce document.</p>'},
+  reserve:{title:'Contrôle quantitatif et qualitatif',body:deliveries+'<p>Relevé physique PC-241. Tu comptes 22 colis reçus. Le carton n° 18 est écrasé sur un angle.</p><label>Combien de colis manquent ?<input name="missing" type="number" min="0" max="24" required></label><label>Quel colis présente un dommage ?<input name="damaged" type="number" min="1" max="24" required></label><label>Choisis la réserve précise<select name="note" required><option value="">Choisir</option><option value="vague">Sous réserve de déballage</option><option value="exact">2 colis PC-241 manquants, carton n° 18 écrasé sur un angle</option><option value="wrong">Palette reçue conforme</option></select></label>'},
+  shipping:{title:'Contrôle avant expédition',body:'<p>Ordre d’expédition EXP-404 · 1 palette CLIENT-20 · quai expédition</p><label>Que contrôles-tu avant le départ ?<select name="verify" required><option value="">Choisir</option><option value="good">La référence, la quantité et le quai correspondent à l’ordre</option><option value="bad">La couleur du chariot</option></select></label>'}
+};
+let openedForm=null;
+function showForm(name){
+  if(dialog.open)return;
+  const form=forms[name];openedForm=name;
+  $('formTitle').textContent=form.title;$('formBody').innerHTML=form.body;$('formError').textContent='';
+  $('check').textContent=name==='bl'?'Récupérer le BL':'Valider';
+  keys.clear();motion=0;dialog.showModal();
+}
+function interact(){
+  if(mode==='walk'){tell('Tu es en promenade. Reviens au parcours pour utiliser le chariot.');return;}
+  if(!mission())return;
+  if(mission().form){showForm(mission().form);return;}
+  const [address,verb,pallet]=action(), place=locations[address];
+  if(Math.hypot(run.x-place.x,run.z-place.z)>3.05){tell('Approche-toi du repère « '+place.label+' » puis arrête-toi.');return;}
+  if(Math.abs(motion)>.75){tell('Immobilise le chariot avant d’interagir.');return;}
+  if(verb==='bl'||verb==='shipping'){showForm(verb);return;}
+  if(verb==='finish'){
+    if(run.fork!==0||run.carried){tell('Dépose la charge et abaisse les fourches à fond.');return;}
+  }
+  if(verb==='pick'||verb==='drop'){
+    if(run.fork!==0){tell('Abaisse les fourches en position basse avant la prise ou la dépose.');return;}
+    if(verb==='pick'){
+      if(run.carried||run.pallets[address]!==pallet){tell('Vérifie la palette affichée sur ton ordre de mission.');return;}
+      delete run.pallets[address];
+      if(blocked(run.x,run.z,1.12)){
+        run.pallets[address]=pallet;tell('Écarte un peu le chariot de l’obstacle avant de prendre la charge.');return;
+      }
+      run.carried=pallet;
+    }else{
+      if(!run.carried||run.pallets[address]){tell('La dépose exige une charge et un emplacement libre.');return;}
+      if(Math.abs(run.x-place.x)<1.62&&Math.abs(run.z-place.z)<1.49){
+        tell('Recule légèrement pour laisser la place à la palette devant le chariot.');return;
+      }
+      run.pallets[address]=run.carried;run.carried=null;
+    }
+  }
+  advance();
+}
+$('documentForm').addEventListener('submit',event=>{
+  event.preventDefault();
+  const values=new FormData(event.currentTarget);
+  const valid={
+    safety:values.get('start')==='inspect'&&values.get('defect')==='alert'&&values.get('fork')==='low',
+    bl:true, reserve:Number(values.get('missing'))===2&&Number(values.get('damaged'))===18&&values.get('note')==='exact',
+    shipping:values.get('verify')==='good'
+  }[openedForm];
+  if(!valid){$('formError').textContent='Vérifie tes réponses à partir des informations du dossier.';return;}
+  const form=openedForm;dialog.close();
+  if(form==='safety'||form==='reserve')finishMission();else advance();
+});
+$('dismiss').onclick=()=>dialog.close();
+dialog.addEventListener('close',()=>{openedForm=null;view.focus();});
+$('interact').onclick=interact;
+$('workButton').onclick=interact;
+$('report').onclick=()=>window.print();
+$('reset').onclick=()=>{
+  if(!confirm('Effacer la progression locale et reprendre à la première mission ?'))return;
+  run=newRun();safe={x:run.x,z:run.z,angle:run.angle};motion=0;mode='training';save();tell('Nouveau parcours.');renderHud();
+};
+$('recover').onclick=()=>{
+  Object.assign(run,safe);motion=0;keys.clear();save();view.focus();
+  tell('Chariot replacé dans une zone dégagée. La mission en cours est conservée.');
+};
+function chooseMode(next){
+  mode=next;motion=0;keys.clear();save();renderHud();view.focus();
+}
+$('training').onclick=()=>chooseMode('training');
+$('walk').onclick=()=>chooseMode('walk');
+const aliases={w:'z',a:'q',arrowup:'z',arrowleft:'q',arrowdown:'s',arrowright:'d'};
+const controls=new Set(['z','q','s','d','e','r','f',' ']);
+function forks(key){
+  if(mode!=='training'||!run.mission||!mission())return;
+  if(Math.abs(motion)>.75){tell('Arrête-toi pour régler les fourches.');return;}
+  run.fork=Math.max(0,Math.min(2,run.fork+(key==='r'?1:-1)));save();
+}
+addEventListener('keydown',event=>{
+  if(dialog.open||event.ctrlKey||event.metaKey||event.altKey)return;
+  if(event.key===' '&&event.target instanceof HTMLButtonElement)return;
+  const key=aliases[event.key.toLowerCase()]||event.key.toLowerCase();
+  if(!controls.has(key))return;
+  event.preventDefault();
+  if(key==='e'){if(!event.repeat)interact();return;}
+  if(key==='r'||key==='f'){if(!event.repeat)forks(key);return;}
+  keys.add(key);
+});
+addEventListener('keyup',event=>keys.delete(aliases[event.key.toLowerCase()]||event.key.toLowerCase()));
+addEventListener('blur',()=>keys.clear());
+addEventListener('pagehide',save);
+for(const button of document.querySelectorAll('[data-key]')){
+  const key=button.dataset.key;
+  button.addEventListener('pointerdown',event=>{
+    if(key==='r'||key==='f')return;
+    event.preventDefault();button.setPointerCapture(event.pointerId);keys.add(key);
+  });
+  for(const event of ['pointerup','pointercancel','lostpointercapture'])button.addEventListener(event,()=>keys.delete(key));
+  if(key==='r'||key==='f')button.onclick=()=>forks(key);
+  else{
+    button.addEventListener('keydown',event=>{if(event.key===' '||event.key==='Enter'){event.preventDefault();keys.add(key);}});
+    button.addEventListener('keyup',event=>{if(event.key===' '||event.key==='Enter')keys.delete(key);});
+  }
+}
+const racks=[];
+for(const x of [9,28])for(const z of [21,28,36,44])racks.push({x,z,w:4,d:5.1});
+const obstacles=[...racks,{x:34.8,z:3.3,w:4.1,d:5.2},{x:3.2,z:4,w:3.8,d:2.6}];
+function blocked(x,z,radius){
+  if(x<1+radius||x>37-radius||z<1+radius||z>58-radius)return true;
+  if(obstacles.some(o=>Math.abs(x-o.x)<o.w/2+radius&&Math.abs(z-o.z)<o.d/2+radius))return true;
+  return Object.keys(run.pallets).some(id=>{
+    const p=locations[id];
+    return p&&Math.abs(x-p.x)<.68+radius&&Math.abs(z-p.z)<.55+radius;
+  });
+}
+function stepMotion(dt){
+  if(dialog.open)return;
+  const walk=mode==='walk';
+  if(!walk&&(!run.mission||!mission()))return;
+  const unit=walk?walker:run;
+  const turn=Number(keys.has('d'))-Number(keys.has('q'));
+  const input=Number(keys.has('z'))-Number(keys.has('s'));
+  const speed=walk?4.6:run.carried?4.3:5.6;
+  const desired=keys.has(' ')?0:input*(input<0?speed*.64:speed);
+  if(!walk&&run.fork>0&&input){
+    if(Math.abs(motion)>.03||message!=='Abaisse les fourches avant de rouler.')tell('Abaisse les fourches avant de rouler.');
+    motion=0;return;
+  }
+  unit.angle=(unit.angle+turn*(walk?2.1:1.72)*dt+Math.PI*2)%(Math.PI*2);
+  motion+=(desired-motion)*Math.min(1,dt*(keys.has(' ')?18:7));
+  const dx=Math.sin(unit.angle)*motion*dt,dz=Math.cos(unit.angle)*motion*dt;
+  const radius=walk?.36:run.carried?1.12:.87;
+  const oldX=unit.x,oldZ=unit.z;
+  if(!blocked(unit.x+dx,unit.z,radius))unit.x+=dx;
+  if(!blocked(unit.x,unit.z+dz,radius))unit.z+=dz;
+  if((dx||dz)&&unit.x===oldX&&unit.z===oldZ)motion=0;
+  if(!walk&&Math.abs(motion)>.25&&!blocked(unit.x,unit.z,1.42))safe={x:unit.x,z:unit.z,angle:unit.angle};
+}
+const faces=['#526d87','#30475e','#3a576e','#274257','#536e88'];
+const staticPolys=[];
+function polygon(pool,points,color){pool.push({points,color});}
+function box(pool,x,y,z,w,h,d,palette=faces,angle=0){
+  const cs=Math.cos(angle),sn=Math.sin(angle);
+  const point=(dx,dy,dz)=>[x+dx*cs+dz*sn,y+dy,z+dz*cs-dx*sn];
+  const v=[point(-w/2,0,-d/2),point(w/2,0,-d/2),point(w/2,0,d/2),point(-w/2,0,d/2),
+    point(-w/2,h,-d/2),point(w/2,h,-d/2),point(w/2,h,d/2),point(-w/2,h,d/2)];
+  [[4,5,6,7],[0,1,5,4],[1,2,6,5],[2,3,7,6],[3,0,4,7]].forEach((face,i)=>polygon(pool,face.map(n=>v[n]),palette[i]||palette[0]));
+}
+function floor(x,z,w,d,color,y=.012){
+  polygon(staticPolys,[[x-w/2,y,z-d/2],[x+w/2,y,z-d/2],[x+w/2,y,z+d/2],[x-w/2,y,z+d/2]],color);
+}
+const blue=['#427a9d','#24526f','#2c6485','#356887','#21445e'];
+const orange=['#ffae52','#bd591f','#eb8031','#ae541c','#d87531'];
+const kraft=['#d0af7f','#906843','#aa8259','#966f47','#be9360'];
+const green=['#55dabb','#208b7b','#3cb7a2','#188371','#28a08e'];
+const steel=['#819bb3','#435771','#55728c','#41556e','#66829e'];
+for(let x=1;x<38;x+=2)for(let z=1;z<59;z+=2)floor(x,z,1.98,1.98,((x+z)%4===0?'#33495c':'#384f61'),0);
+for(const x of [12.7,25.3])for(let z=13;z<52;z+=3)floor(x,z,.13,1.6,'#dab371');
+for(const [id,l] of Object.entries(locations)){
+  const color=id==='outbound'?'#3b6480':id==='park'?'#34577b':'#395b64';
+  floor(l.x,l.z,3.3,3.2,color);
+  for(const dx of [-1.64,1.64])floor(l.x+dx,l.z,.07,3.3,'#d6be87',.025);
+}
+for(const rack of racks){
+  for(const dx of [-1.9,1.9])for(const dz of [-2.4,2.4])box(staticPolys,rack.x+dx,0,rack.z+dz,.14,4.45,.16,blue);
+  for(const height of [.2,1.65,3.12]){
+    box(staticPolys,rack.x,height,rack.z,4,.14,4.94,orange);
+    for(const dx of [-1.15,.28,1.15])box(staticPolys,rack.x+dx,height+.15,rack.z+.19,.74,.71,2.45,kraft);
+  }
+}
+for(const x of [0,38])for(let z=2;z<60;z+=4){
+  box(staticPolys,x,0,z,.22,5.6,4.02,steel);
+  box(staticPolys,x+(x===0?.18:-.18),0,z,.21,5.8,.18,blue);
+}
+for(const z of [0,59.7])for(let x=2;x<38;x+=4)box(staticPolys,x,0,z,4.02,5.6,.22,steel);
+for(const x of [26,32,36]){
+  box(staticPolys,x,0,.22,3.5,3.9,.24,blue);
+  for(let y=.3;y<3.8;y+=.32)box(staticPolys,x,y,.38,3.28,.035,.05,steel);
+}
+box(staticPolys,34.8,0,3.3,4.1,.69,5.2,steel);
+box(staticPolys,34.8,.69,2.65,3.64,2.32,3.68,blue);
+box(staticPolys,34.8,.69,5.03,3.6,1.7,1.42,orange);
+box(staticPolys,3.2,0,4,3.8,1.2,2.6,blue);
+let width=1,height=1,camera=null;
+function resize(){
+  const rect=view.getBoundingClientRect(),dpr=Math.min(devicePixelRatio||1,1.7);
+  const w=Math.max(1,Math.round(rect.width*dpr)),h=Math.max(1,Math.round(rect.height*dpr));
+  if(view.width!==w||view.height!==h){view.width=w;view.height=h;}
+  width=w;height=h;
+}
+new ResizeObserver(resize).observe(view);
+function orbit(unit){
+  const sy=Math.sin(unit.angle),cy=Math.cos(unit.angle),walking=mode==='walk';
+  const arm=walking?4.1:7.2, up=walking?3.25:5.0;
+  const dx=-sy*arm,dz=-cy*arm;
+  let scale=1;
+  while(scale>.28&&(unit.x+dx*scale<.35||unit.x+dx*scale>37.65||unit.z+dz*scale<.35||unit.z+dz*scale>59.25))scale-=.1;
+  const length=Math.hypot(arm*scale+4,up-1.35);
+  return {x:unit.x+dx*scale,y:up,z:unit.z+dz*scale,sy,cy,cp:(arm*scale+4)/length,sp:(up-1.35)/length,f:Math.min(width*.92,height*1.18)};
+}
+function viewPoint([x,y,z]){
+  const dx=x-camera.x,dy=y-camera.y,dz=z-camera.z;
+  const ahead=dx*camera.sy+dz*camera.cy;
+  return [dx*camera.cy-dz*camera.sy,dy*camera.cp+ahead*camera.sp,ahead*camera.cp-dy*camera.sp];
+}
+function nearClip(points){
+  const output=[], near=.32;
+  for(let i=0;i<points.length;i++){
+    const a=points[i],b=points[(i+1)%points.length];
+    if(a[2]>=near)output.push(a);
+    if((a[2]>=near)!==(b[2]>=near)){
+      const t=(near-a[2])/(b[2]-a[2]);output.push([a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,near]);
+    }
+  }
+  return output;
+}
+function screen([x,y,z]){return [width*.5+x*camera.f/z,height*.46-y*camera.f/z];}
+function drawVehicle(pool,unit,walking){
+  const {x,z,angle}=unit,sy=Math.sin(angle),cy=Math.cos(angle);
+  const part=(dx,y,dz,w,h,d,paint)=>box(pool,x+dx*cy+dz*sy,y,z+dz*cy-dx*sy,w,h,d,paint,angle);
+  if(walking){part(0,.04,0,.43,1.22,.31,blue);part(0,1.26,0,.33,.35,.3,kraft);return;}
+  const tires=['#26323d','#141e28','#222c38','#111a25','#172330'];
+  for(const xOffset of [-.64,.64])for(const zOffset of [-.78,.55])part(xOffset,.04,zOffset,.28,.51,.56,tires);
+  part(0,.31,-.18,1.34,.62,1.73,orange);part(0,.91,-.15,.68,.23,.64,tires);
+  for(const dx of [-.57,.57])for(const dz of [-.77,.45])part(dx,.81,dz,.09,1.28,.09,steel);
+  part(0,2.07,-.16,1.32,.13,1.44,steel);
+  for(const dx of [-.38,.38]){
+    part(dx,.35,.88,.12,2.12,.16,steel);
+    part(dx,.1+run.fork*.51,1.41,.13,.08,1.0,steel);
+  }
+  if(run.carried){part(0,.2+run.fork*.51,1.37,1.22,.14,.91,orange);part(0,.34+run.fork*.51,1.38,1.12,.72,.81,kraft);}
+}
+function drawMap(unit){
+  const sx=x=>x*3+6, sz=z=>145-z*2.24;
+  map.clearRect(0,0,126,151);map.fillStyle='#426078';map.strokeRect(5,10,115,135);
+  for(const r of racks)map.fillRect(sx(r.x-r.w/2),sz(r.z+r.d/2),r.w*3,r.d*2.24);
+  const next=mode==='training'&&action()?locations[action()[0]]:null;
+  if(next){map.fillStyle='#ffcd72';map.beginPath();map.arc(sx(next.x),sz(next.z),5,0,Math.PI*2);map.fill();}
+  map.save();map.translate(sx(unit.x),sz(unit.z));map.rotate(unit.angle);
+  map.fillStyle='#68e5ce';map.beginPath();map.moveTo(0,-6);map.lineTo(5,5);map.lineTo(-5,5);map.fill();map.restore();
+}
+function draw(){
+  const walking=mode==='walk', unit=walking?walker:run;
+  camera=orbit(unit);const dynamic=[];
+  for(const [id] of Object.entries(run.pallets)){
+    const l=locations[id];if(!l)continue;
+    box(dynamic,l.x,.05,l.z,1.36,.16,1.1,orange);
+    box(dynamic,l.x,.21,l.z,1.18,.79,.93,kraft);
+  }
+  drawVehicle(dynamic,unit,walking);
+  const next=!walking&&action()?locations[action()[0]]:null;
+  if(next)box(dynamic,next.x+1.35,0,next.z+.92,.15,2.35,.15,green);
+  const gradient=ctx.createLinearGradient(0,0,0,height);
+  gradient.addColorStop(0,'#82a7bf');gradient.addColorStop(.62,'#304961');gradient.addColorStop(1,'#142237');
+  ctx.fillStyle=gradient;ctx.fillRect(0,0,width,height);
+  const projected=[];
+  for(const source of [staticPolys,dynamic])for(const face of source){
+    const points=nearClip(face.points.map(viewPoint));if(points.length<3)continue;
+    const flat=points.map(screen);
+    if(flat.every(p=>p[0]<0)||flat.every(p=>p[0]>width)||flat.every(p=>p[1]<0)||flat.every(p=>p[1]>height))continue;
+    projected.push({flat,depth:points.reduce((sum,p)=>sum+p[2],0)/points.length,color:face.color});
+  }
+  projected.sort((a,b)=>b.depth-a.depth);
+  for(const {flat,color} of projected){
+    ctx.beginPath();ctx.moveTo(...flat[0]);for(let i=1;i<flat.length;i++)ctx.lineTo(...flat[i]);ctx.closePath();
+    ctx.fillStyle=color;ctx.strokeStyle=color;ctx.lineWidth=.9;ctx.fill();ctx.stroke();
+  }
+  if(next){
+    const p=viewPoint([next.x+1.35,2.55,next.z+.92]);
+    if(p[2]>.7){
+      const [x,y]=screen(p);ctx.font='bold '+Math.max(13,width*.018)+'px system-ui';
+      const label=next.label,w=ctx.measureText(label).width+16;
+      ctx.fillStyle='#0b1728';ctx.fillRect(x-w/2,y-20,w,26);ctx.fillStyle='#ffcf79';ctx.textAlign='center';ctx.fillText(label,x,y-2);
+    }
+  }
+  drawMap(unit);
+  const hud=walking?'À pied':'Chariot · '+(Math.round(Math.abs(motion)*3.6))+' km/h · Fourches '+['basses','mi-hauteur','hautes'][run.fork]+(run.carried?' · '+run.carried:'');
+  if($('vehicle').textContent!==hud)$('vehicle').textContent=hud;
+}
+let last=0,lastSave=0,lastDraw=0;
+function frame(now){
+  if(last)stepMotion(Math.min(.05,(now-last)/1000));last=now;
+  if(now-lastDraw>28){draw();lastDraw=now;}
+  if(now-lastSave>2200){save();lastSave=now;}
+  requestAnimationFrame(frame);
+}
+renderHud();resize();requestAnimationFrame(frame);
+</script>
+<style>@media print{header nav,.scene,.card button,#status,#target{display:none!important}body,aside,.card{background:white;color:#101820;border:none}main,aside{display:block}header,main{max-width:680px}.active,.done,.eyebrow,.muted,.score strong{color:#192c40}.card{padding:12px 0}ol{color:#101820}}</style>
+</html>
+
