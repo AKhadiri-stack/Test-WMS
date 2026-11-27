@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atelier GATL · 2BACGTL1</title>
+<style>
+:root{color-scheme:light;--navy:#112841;--navy2:#203c57;--paper:#f0f4f8;--ink:#102b40;--orange:#f4a44e;--line:#d6e0e9}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 system-ui,sans-serif}header{background:var(--navy);color:#fff;border-bottom:4px solid var(--orange)}header>div{max-width:1120px;margin:auto;padding:1.15rem 1.35rem;display:flex;align-items:center;justify-content:space-between;gap:1rem}header strong{font-size:1.15rem}header small{display:block;color:#d6e3f2}main{max-width:1120px;margin:auto;padding:2rem 1.35rem 3rem}h1,h2,h3,p{margin-top:0}h1{line-height:1.1;font-size:clamp(1.75rem,4vw,2.65rem)}h2{line-height:1.2}button,input,select,textarea{font:inherit}button{border:0;border-radius:.55rem;padding:.65rem 1rem;background:var(--navy2);color:white;cursor:pointer;font-weight:650}button.secondary{background:#e7eff6;color:var(--navy)}button:disabled{opacity:.5;cursor:default}:focus-visible{outline:3px solid #b55d0a;outline-offset:3px}input:not([type=checkbox]):not([type=radio]),textarea,select{display:block;width:100%;max-width:100%;padding:.55rem .7rem;border:1px solid #8ea4b9;background:white;color:var(--ink);border-radius:.4rem}textarea{min-height:6rem}label,legend{font-weight:600}small,.muted{color:#476177}.card,.work,.login{padding:1.35rem;background:white;border:1px solid var(--line);border-radius:.8rem;box-shadow:0 5px 18px #102d4811}.login{max-width:32rem;margin:5vh auto}.login input{margin:.45rem 0 .85rem}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,16.5rem),1fr));gap:1rem}.card{display:flex;flex-direction:column;align-items:start}.card button{margin-top:auto}.card h2{font-size:1.08rem}.status{display:block;margin:.5rem 0;color:#31546c;font-weight:650}.docs{display:grid;gap:.75rem;margin-bottom:1rem}details{border:1px solid var(--line);padding:.65rem .85rem;border-radius:.45rem;background:#f6f9fc}summary{font-weight:650;cursor:pointer}.scroll{overflow-x:auto}table{border-collapse:collapse;width:100%;margin:.5rem 0}th,td{border:1px solid #a9baca;padding:.45rem;text-align:left}th{background:#e5eef6}fieldset{margin:0 0 1rem;border:1px solid var(--line);border-radius:.45rem;padding:.7rem .85rem}fieldset label.option{display:block;font-weight:400}.order select{margin:.4rem 0}.toolbar{display:flex;gap:.65rem;flex-wrap:wrap;margin:1rem 0}.notice{border-left:4px solid var(--orange);padding:.6rem .85rem;background:#fff3e4}.hidden,[hidden]{display:none!important}@media print{header,button,#login{display:none!important}body{background:white}main,.work{padding:0;box-shadow:none;border:0}details{break-inside:avoid}}
+</style></head>
+<body><header><div><span><strong>Atelier GATL</strong><small>Lycée Château d’Épluches · M. Khadiri</small></span><button id="logout" class="secondary" type="button" hidden>Se déconnecter</button></div></header>
+<main>
+<form class="login" id="login"><h1>TP de la 2BACGTL1</h1><p>Entre le code personnel reçu sur Pronote. Garde-le pour les prochains TP.</p><label for="code">Code personnel ou code de démo</label><input id="code" autocomplete="off" autocapitalize="characters" spellcheck="false" required maxlength="18" placeholder="XXXX-XXXX-XXXX"><button type="submit">Accéder aux activités</button><p id="loginStatus" class="status" role="status"></p></form>
+<section id="catalog" hidden><h1 id="welcome">Tes activités</h1><p id="catalogStatus" class="status" role="status"></p><div id="cards" class="grid"></div></section>
+<section id="activity" hidden><div class="toolbar"><button id="back" class="secondary" type="button">Retour aux activités</button><button id="imprimer" class="secondary" type="button">Imprimer</button></div><article class="work" id="sheet"></article><p id="saveStatus" class="status" role="status"></p><div class="toolbar"><button id="submit" type="button">Remettre ma copie</button></div></section>
+</main>
+<script>
+'use strict';
+const endpoint = 'https://vcrodgslfonzcwfoaqsg.supabase.co/rest/v1/rpc/';
+const key = "sb_publishable_ikYImUebaJgUTjz_dMKZmA_7rzbBfYj";
+const $ = id => document.getElementById(id);
+const sessionKey = 'gatl-portail-session';
+let user = null, current = null, queue = Promise.resolve(), timer;
+const el = (name, content, cls) => {
+  const item = document.createElement(name);
+  if (content != null) item.textContent = content;
+  if (cls) item.className = cls;
+  return item;
+};
+async function rpc(name, args = {}) {
+  const response = await fetch(endpoint + name, {
+    method: 'POST',
+    headers: { apikey: key, 'Content-Type': 'application/json' },
+    body: JSON.stringify(args)
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Service indisponible');
+  return data;
+}
+function show(id) {
+  ['login','catalog','activity'].forEach(name => { $(name).hidden = name !== id; });
+  $('logout').hidden = id === 'login';
+}
+function errText() { return 'Connexion au serveur impossible. Réessaie dans un instant.'; }
+$('login').addEventListener('submit', async event => {
+  event.preventDefault();
+  const button = event.currentTarget.querySelector('button');
+  button.disabled = true;
+  $('loginStatus').textContent = 'Vérification du code…';
+  try {
+    const result = await rpc('gatl_portal_login', {p_code: $('code').value});
+    if (result.error) { $('loginStatus').textContent = 'Code incorrect ou expiré. Vérifie le message reçu sur Pronote.'; return; }
+    if (!result.demo) sessionStorage.setItem(sessionKey, result.token);
+    user = result;
+    $('code').value = '';
+    $('loginStatus').textContent = '';
+    await catalog();
+  } catch { $('loginStatus').textContent = errText(); }
+  finally { button.disabled = false; }
+});
+async function catalog() {
+  show('catalog');
+  $('welcome').textContent = user.demo ? 'Démo professeur' : 'Tes activités';
+  $('cards').replaceChildren();
+  $('catalogStatus').textContent = 'Chargement…';
+  try {
+    const [listing, dashboard] = await Promise.all([
+      rpc('cel_catalog'),
+      user.demo ? Promise.resolve(null) : rpc('cel_student_dashboard',{p_token:user.token})
+    ]);
+    const assigned = new Map((dashboard?.assignments || []).map(a => [a.mission_id,a]));
+    const attempts = dashboard?.attempts || [];
+    const modules = user.demo ? listing : listing.filter(m => assigned.has(m.id));
+    modules.sort((a,b) => {
+      const order = ['CMD150-04','CMD150-05','CMD150-06','LOG-INV-01'];
+      const rank = m => order.includes(m.id) ? order.indexOf(m.id) : order.length;
+      return rank(a) - rank(b);
+    });
+    for (const item of modules) {
+      const record = attempts.find(a => a.mission_id === item.id && a.team_id == null);
+      const access = assigned.get(item.id);
+      const card = el('article', null, 'card');
+      card.append(el('small', 'Mission · ' + item.duration + ' min'), el('h2',item.title), el('p',item.summary));
+      if (record?.grade) card.append(el('p', 'Note : ' + record.grade.score + '/' + record.grade.max + (record.grade.comment ? ' · ' + record.grade.comment : '')));
+      const button = el('button', record?.status === 'submitted' ? 'Voir ma copie' : (record ? 'Reprendre' : 'Ouvrir la mission'));
+      button.disabled = Boolean(access && !access.unlocked);
+      button.addEventListener('click', () => openMission(item, access, button));
+      card.append(button);
+      $('cards').append(card);
+    }
+    $('catalogStatus').textContent = user.demo ? 'Explore les missions. Les réponses saisies en démo restent dans cette page.' : (modules.length ? '' : 'Aucune activité attribuée pour le moment.');
+  } catch (error) {
+    if (/SESSION_INVALIDE/.test(error.message)) { await logout(); $('loginStatus').textContent = 'Session expirée. Entre de nouveau ton code.'; }
+    else $('catalogStatus').textContent = errText();
+  }
+}
+function safeDocument(markup) {
+  const allowed = new Set(['P','DIV','SPAN','BR','B','STRONG','EM','I','U','UL','OL','LI','TABLE','THEAD','TBODY','TR','TH','TD','H3','H4','BLOCKQUOTE','DL','DT','DD','SUP','SUB']);
+  const excluded = new Set(['SCRIPT','STYLE','IFRAME','OBJECT','SVG','MATH']);
+  const copy = (parent, target) => {
+    for (const node of parent.childNodes) {
+      if (node.nodeType === Node.TEXT_NODE) target.append(document.createTextNode(node.textContent));
+      else if (!excluded.has(node.tagName)) {
+        const child = allowed.has(node.tagName) ? el(node.tagName.toLowerCase()) : document.createDocumentFragment();
+        copy(node, child);
+        target.append(child);
+      }
+    }
+  };
+  const fragment = document.createDocumentFragment();
+  copy(new DOMParser().parseFromString(markup || '', 'text/html').body, fragment);
+  return fragment;
+}
+function table(columns, rows, draw) {
+  const wrap = el('div',null,'scroll'), grid = el('table'), head = el('thead'), hr = el('tr'), body = el('tbody');
+  for (const col of columns || []) hr.append(el('th',col));
+  head.append(hr);
+  for (const row of rows || []) {
+    const tr = el('tr');
+    for (const value of row) { const td = el('td'); td.append(draw(value)); tr.append(td); }
+    body.append(tr);
+  }
+  grid.append(head,body);
+  wrap.append(grid);
+  return wrap;
+}
+function localDraft() {
+  if (user.demo || current.closed) return;
+  try { sessionStorage.setItem(current.storage,JSON.stringify(current.answers)); } catch {}
+}
+function changed(id, value) {
+  current.answers[id] = value;
+  current.dirty = true;
+  localDraft();
+  if (user.demo) return;
+  $('saveStatus').textContent = 'Enregistrement…';
+  clearTimeout(timer);
+  timer = setTimeout(() => flush(), 650);
+}
+function question(q, position) {
+  const field = el('fieldset');
+  const legend = el('legend', position + '. ' + q.label + (q.unit ? ' (' + q.unit + ')' : ''));
+  field.append(legend);
+  if (q.help) field.append(el('p',q.help,'muted'));
+  const value = current.answers[q.id];
+  const mark = (control, label) => {
+    control.setAttribute('aria-label', label);
+    control.disabled = current.closed;
+    return control;
+  };
+  const input = (name, value, update, type = 'text') => {
+    const control = mark(el(type === 'long' ? 'textarea' : 'input'),name);
+    if (type === 'number') control.inputMode = 'decimal';
+    control.value = value ?? '';
+    control.addEventListener('input', () => update(control.value));
+    control.addEventListener('paste', event => event.preventDefault());
+    control.addEventListener('drop', event => event.preventDefault());
+    control.addEventListener('contextmenu', event => event.preventDefault());
+    return control;
+  };
+  if (q.type === 'multi' || q.type === 'choice') {
+    const selected = new Set(Array.isArray(value) ? value : []);
+    (q.options || []).forEach(option => {
+      const label = el('label',null,'option'), control = mark(el('input'),option.label);
+      control.type = q.type === 'multi' ? 'checkbox' : 'radio';
+      control.name = q.id;
+      control.checked = q.type === 'multi' ? selected.has(option.v) : value === option.v;
+      control.addEventListener('change', () => {
+        if (q.type === 'choice') changed(q.id,option.v);
+        else { if (control.checked) selected.add(option.v); else selected.delete(option.v); changed(q.id,[...selected]); }
+      });
+      label.append(control, ' ' + option.label);
+      field.append(label);
+    });
+  } else if (q.type === 'table') {
+    const cells = {...(value || {})};
+    field.append(table(q.columns,q.rows,cell => {
+      if (cell && typeof cell === 'object' && cell.input) {
+        return input(q.label + ' · ' + cell.input,cells[cell.input],v => { cells[cell.input] = v; changed(q.id,{...cells}); });
+      }
+      return document.createTextNode(String(cell ?? ''));
+    }));
+  } else if (q.type === 'order') {
+    const choices = el('div',null,'order');
+    for (let i = 0; i < q.items.length; i++) {
+      const select = mark(el('select'),q.label + ' · position ' + (i + 1));
+      select.append(new Option('Position ' + (i + 1), ''));
+      const sorted = [...q.items].sort((a,b) => a.label.localeCompare(b.label,'fr'));
+      sorted.forEach(item => select.append(new Option(item.label,item.v)));
+      select.value = value?.[i] || '';
+      select.addEventListener('change',() => changed(q.id,[...choices.querySelectorAll('select')].map(item => item.value)));
+      choices.append(select);
+    }
+    field.append(choices);
+  } else {
+    if (q.minWords) field.append(el('small','Minimum conseillé : ' + q.minWords + ' mots.'));
+    field.append(input(q.label,value,v => changed(q.id,v),q.type === 'number' ? 'number' : 'long'));
+  }
+  return field;
+}
+async function openMission(item, access, button) {
+  button.disabled = true;
+  $('catalogStatus').textContent = 'Ouverture de la mission…';
+  try {
+    const saved = user.demo ? null : await rpc('cel_load_attempt',{p_token:user.token,p_mission:item.id,p_team:null});
+    const version = saved?.mission_version || access?.version || item.version;
+    const mission = await rpc('cel_get_mission',{p_id:item.id,p_version:version});
+    if (!mission?.steps) throw new Error('Mission indisponible');
+    const storage = 'gatl-brouillon:' + (user.student?.id || 'demo') + ':' + item.id + ':' + version;
+    const closed = saved?.status === 'submitted';
+    let pending = {};
+    if (!user.demo && !closed) {
+      try { pending = JSON.parse(sessionStorage.getItem(storage) || '{}'); } catch {}
+    }
+    current = {item,version,storage,closed,id:saved?.id,rev:saved?.rev || 0,answers:{...saved?.answers,...pending},dirty:Object.keys(pending).length > 0};
+    render(mission);
+    show('activity');
+    window.scrollTo(0,0);
+    if (current.dirty) flush();
+  } catch { $('catalogStatus').textContent = 'Impossible d’ouvrir cette mission. Réessaie.'; }
+  finally { button.disabled = false; }
+}
+function render(mission) {
+  const sheet = $('sheet');
+  sheet.replaceChildren(el('h1',mission.title),el('p',mission.summary));
+  for (const entry of mission.intro || []) if (entry.text) sheet.append(el('p',entry.text,'notice'));
+  const docs = el('div',null,'docs');
+  for (const doc of mission.documents || []) {
+    const disclosure = el('details');
+    disclosure.append(el('summary',doc.title));
+    if (doc.kind === 'table') disclosure.append(table(doc.columns,doc.rows,v => document.createTextNode(String(v ?? ''))));
+    else if (doc.html) disclosure.append(safeDocument(doc.html));
+    else if (doc.text) disclosure.append(el('p',doc.text));
+    if (doc.note) disclosure.append(el('p',doc.note,'muted'));
+    docs.append(disclosure);
+  }
+  if (docs.childElementCount) sheet.append(el('h2','Documents de travail'),docs);
+  let position = 0;
+  for (const step of mission.steps) {
+    sheet.append(el('h2',step.title));
+    if (step.brief) sheet.append(el('p',step.brief));
+    for (const q of step.questions || []) sheet.append(question(q,++position));
+  }
+  $('saveStatus').textContent = user.demo ? 'Mode démo' : (current.closed ? 'Copie remise.' : (current.id ? 'Brouillon récupéré.' : 'Les réponses s’enregistrent pendant la saisie.'));
+  $('submit').hidden = current.closed || user.demo;
+}
+async function flush() {
+  clearTimeout(timer);
+  const state = current;
+  if (!state || !user || user.demo || state.closed) return true;
+  const token = user.token;
+  const run = async () => {
+    if (!state.dirty || state.closed) return true;
+    const payload = JSON.parse(JSON.stringify(state.answers));
+    state.dirty = false;
+    try {
+      const result = await rpc('cel_save_attempt',{p_token:token,p_mission:state.item.id,p_version:state.version,p_team:null,p_answers:payload,p_step:0,p_steps_done:[],p_base_rev:state.rev});
+      state.id = result.attempt_id;
+      state.rev = result.rev;
+      if (!state.dirty) sessionStorage.removeItem(state.storage);
+      $('saveStatus').textContent = state.dirty ? 'Enregistrement…' : 'Brouillon enregistré en ligne.';
+      return true;
+    } catch {
+      state.dirty = true;
+      $('saveStatus').textContent = 'Sauvegarde en ligne en attente. Garde cet onglet ouvert.';
+      return false;
+    }
+  };
+  queue = queue.then(run,run);
+  return queue;
+}
+$('back').addEventListener('click', async () => { await flush(); current = null; await catalog(); window.scrollTo(0,0); });
+$('imprimer').addEventListener('click', () => window.print());
+$('submit').addEventListener('click', async () => {
+  if (!current || !confirm('Veux-tu remettre ta copie ? Elle deviendra non modifiable.')) return;
+  const button = $('submit');
+  button.disabled = true;
+  const inputs = [...$('sheet').querySelectorAll('input,textarea,select')];
+  inputs.forEach(input => {input.disabled = true;});
+  try {
+    if (!await flush()) return;
+    if (!current.id) { $('saveStatus').textContent = 'Saisis au moins une réponse avant de remettre ta copie.'; return; }
+    await rpc('cel_submit_attempt',{p_token:user.token,p_attempt:current.id});
+    current.closed = true;
+    $('saveStatus').textContent = 'Copie remise à M. Khadiri.';
+    button.hidden = true;
+  } catch { $('saveStatus').textContent = 'Remise non confirmée. Réessaie.'; }
+  finally { button.disabled = false; if (!current.closed) inputs.forEach(input => {input.disabled = false;}); }
+});
+async function logout() {
+  await flush();
+  if (user?.token) {
+    try { await rpc('cel_student_logout',{p_token:user.token}); } catch {}
+  }
+  sessionStorage.removeItem(sessionKey);
+  for (const storage of Object.keys(sessionStorage)) {
+    if (user?.student?.id && storage.startsWith('gatl-brouillon:' + user.student.id + ':')) sessionStorage.removeItem(storage);
+  }
+  user = current = null;
+  $('sheet').replaceChildren();
+  $('cards').replaceChildren();
+  show('login');
+}
+$('logout').addEventListener('click', logout);
+window.addEventListener('online', () => flush());
+const token = sessionStorage.getItem(sessionKey);
+if (token) { user = {token}; rpc('cel_student_me',{p_token:token}).then(data => {user = {...data,token};return catalog();}).catch(() => {sessionStorage.removeItem(sessionKey); user = null;}); }
+</script></body></html>
